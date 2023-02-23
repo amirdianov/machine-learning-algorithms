@@ -20,7 +20,7 @@ class LinearRegression:
         base_functions = lin_reg_cfg.base_functions
         for function in base_functions:
             matrix.append(function(inputs))
-        return matrix
+        return np.array(matrix).T
 
     def __calculate_weights(
         self, pseudoinverse_plan_matrix: np.ndarray, targets: np.ndarray
