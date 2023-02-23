@@ -1,5 +1,7 @@
 import numpy as np
 
+from configs.linear_regression_cfg import cfg as lin_reg_cfg
+
 
 class LinearRegression:
     def __init__(self, base_functions: list):
@@ -14,7 +16,8 @@ class LinearRegression:
 
     def __plan_matrix(self, inputs: np.ndarray) -> np.ndarray:
         # TODO build Plan matrix using list of lambda functions defined in config. Use only one loop (for base_functions)
-        pass
+        matrix = [function(inputs) for function in lin_reg_cfg.base_functions]
+        return matrix
 
     def __calculate_weights(
         self, pseudoinverse_plan_matrix: np.ndarray, targets: np.ndarray
@@ -24,6 +27,7 @@ class LinearRegression:
 
     def calculate_model_prediction(self, plan_matrix) -> np.ndarray:
         # TODO calculate prediction of the model (y) using formula from the lecture
+
         pass
 
     def train_model(self, inputs: np.ndarray, targets: np.ndarray) -> None:
