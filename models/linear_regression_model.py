@@ -16,7 +16,10 @@ class LinearRegression:
 
     def __plan_matrix(self, inputs: np.ndarray) -> np.ndarray:
         # TODO build Plan matrix using list of lambda functions defined in config. Use only one loop (for base_functions)
-        matrix = [function(inputs) for function in lin_reg_cfg.base_functions]
+        matrix = []
+        base_functions = lin_reg_cfg.base_functions
+        for function in base_functions:
+            matrix.append(function(inputs))
         return matrix
 
     def __calculate_weights(
@@ -27,8 +30,8 @@ class LinearRegression:
 
     def calculate_model_prediction(self, plan_matrix) -> np.ndarray:
         # TODO calculate prediction of the model (y) using formula from the lecture
-
-        pass
+        predictions = np.dot(plan_matrix, self.weights)
+        return predictions
 
     def train_model(self, inputs: np.ndarray, targets: np.ndarray) -> None:
         """Not this homework"""
