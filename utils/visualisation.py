@@ -17,12 +17,16 @@ class Visualisation:
         :param targets: target variables (oy for one trace)
         :param plot_title: plot title
         """
+        fig = go.Figure()
         trace1 = go.Scatter(x=inputs, y=targets, mode="markers", name="target")
         trace2 = go.Scatter(x=inputs, y=prediction, mode="lines", name="prediction")
-
-        plotly.offline.plot(
-            {"data": [trace1, trace2], "layout": Layout(title=plot_title)}
-        )
+        fig.add_trace(trace1)
+        fig.add_trace(trace2)
+        fig.update_layout(title=f"{plot_title}")
+        fig.show()
+        # plotly.offline.plot(
+        #     {"data": [trace1, trace2], "layout": Layout(title=plot_title)}
+        # )
 
     @staticmethod
     def visualise_error():
