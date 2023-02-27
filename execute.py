@@ -9,7 +9,7 @@ def experiment(lin_reg_cfg, visualise_prediction=True):
     linreg_dataset = LinRegDataset()(lin_reg_cfg.dataframe_path)
 
     predictions = lin_reg_model(linreg_dataset["inputs"])
-    error = MSE(predictions, linreg_dataset["targets"])
+    error = round(MSE(predictions, linreg_dataset["targets"]), 2)
 
     if visualise_prediction:
         Visualisation.visualise_predicted_trace(
