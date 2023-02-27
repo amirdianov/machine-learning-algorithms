@@ -23,4 +23,9 @@ def experiment(lin_reg_cfg, visualise_prediction=True):
 if __name__ == "__main__":
     from configs.linear_regression_cfg import cfg as lin_reg_cfg
 
-    experiment(lin_reg_cfg, visualise_prediction=True)
+    degrees = [1, 8, 100]
+    for elem in degrees:
+        lin_reg_cfg.update(
+            base_functions=[lambda x, degree=i: x**degree for i in range(1 + elem)]
+        )
+        experiment(lin_reg_cfg, visualise_prediction=True)
