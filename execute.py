@@ -9,14 +9,14 @@ def experiment(lin_reg_cfg, visualise_prediction=True):
     linreg_dataset = LinRegDataset()(lin_reg_cfg.dataframe_path)
 
     predictions = lin_reg_model(linreg_dataset["inputs"])
-    error = round(MSE(predictions, linreg_dataset["targets"]), 2)
+    error = MSE(predictions, linreg_dataset["targets"])
 
     if visualise_prediction:
         Visualisation.visualise_predicted_trace(
             predictions,
             linreg_dataset["inputs"],
             linreg_dataset["targets"],
-            plot_title=f"Полином степени {len(lin_reg_cfg.base_functions)}; MSE = {error}",
+            plot_title=f"Полином степени {len(lin_reg_cfg.base_functions)}; MSE = {round(error, 2)}",
         )
 
 
@@ -26,6 +26,7 @@ if __name__ == "__main__":
     degrees = [1, 8, 100]
     for elem in degrees:
         lin_reg_cfg.update(
-            base_functions=[lambda x, degree=i: x**degree for i in range(1 + elem)]
+            # we have f1, f2, ... fn functions, about f0 in __plan_matrix
+            base_functions=[lambda x, degree=i: x**degree for i in range(1, 1 + elem)]
         )
         experiment(lin_reg_cfg, visualise_prediction=True)
