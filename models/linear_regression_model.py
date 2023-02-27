@@ -5,8 +5,9 @@ from configs.linear_regression_cfg import cfg as lin_reg_cfg
 
 class LinearRegression:
     def __init__(self, base_functions: list):
-        # TODO: init weights using np.random.randn (normal distribution with mean=0 and variance=1)
-        self.weights = np.random.randn(len(base_functions))
+        """init weights using np.random.randn (normal distribution with mean=0 and variance=1)"""
+        """we take one more weight, because we need column f0 = 1"""
+        self.weights = np.random.randn(len(base_functions) + 1)
         self.base_functions = base_functions
 
     @staticmethod
@@ -15,8 +16,12 @@ class LinearRegression:
         pass
 
     def __plan_matrix(self, inputs: np.ndarray) -> np.ndarray:
-        # TODO build Plan matrix using list of lambda functions defined in config. Use only one loop (for base_functions)
-        return np.array([function(inputs) for function in lin_reg_cfg.base_functions]).T
+        """build Plan matrix using list of lambda functions defined in config. 
+        Use only one loop (for base_functions)""" """about f0 - we need column with only ones"""
+        matrix = [np.ones_like(inputs)]
+        for function in self.base_functions:
+            matrix = np.append(matrix, np.array([function(inputs)]), 0)
+        return matrix.T
 
     def __calculate_weights(
         self, pseudoinverse_plan_matrix: np.ndarray, targets: np.ndarray
@@ -25,7 +30,7 @@ class LinearRegression:
         pass
 
     def calculate_model_prediction(self, plan_matrix) -> np.ndarray:
-        # TODO calculate prediction of the model (y) using formula from the lecture
+        """calculate prediction of the model (y) using formula from the lecture"""
         return np.dot(plan_matrix, self.weights.T)
 
     def train_model(self, inputs: np.ndarray, targets: np.ndarray) -> None:
