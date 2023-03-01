@@ -1,7 +1,7 @@
 import numpy as np
 import plotly
-import plotly.graph_objects as go
 from plotly.graph_objs import Layout
+import plotly.graph_objects as go
 
 
 class Visualisation:
@@ -29,5 +29,5 @@ class Visualisation:
         # )
 
     @staticmethod
-    def visualise_error():
+    def visualise_best_models(*args, **kwargs):
         pass
