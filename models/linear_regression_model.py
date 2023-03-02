@@ -1,7 +1,5 @@
 import numpy as np
 
-from configs.linear_regression_cfg import cfg as lin_reg_cfg
-
 
 class LinearRegression:
     def __init__(self, base_functions: list, reg_coeff: float):
@@ -12,8 +10,26 @@ class LinearRegression:
         self.reg_coeff = reg_coeff
 
     def __pseudoinverse_matrix(self, matrix: np.ndarray) -> np.ndarray:
-        """TODO calculate pseudoinverse matrix with regularization using SVD"""
-        pass
+        """calculate pseudoinverse matrix with regularization using SVD"""
+        tuple_of_matrix = np.linalg.svd(matrix)
+        print(
+            tuple_of_matrix[0].shape, tuple_of_matrix[1].shape, tuple_of_matrix[2].shape
+        )
+        sigma_from_tuple = tuple_of_matrix[1]
+        matrix_sigma_from_tuple = np.diag(sigma_from_tuple)
+        matrix_sigma_from_tuple = np.where(
+            matrix_sigma_from_tuple
+            > np.finfo(float).eps
+            * max(
+                matrix_sigma_from_tuple.shape[0], matrix_sigma_from_tuple.shape[1] + 1
+            ),
+            matrix_sigma_from_tuple / (matrix_sigma_from_tuple**2 + self.reg_coeff),
+            0,
+        )
+        sigma_plus = matrix_sigma_from_tuple.T
+        v = tuple_of_matrix[2].T
+        u_t = tuple_of_matrix[0].T
+        return v * sigma_plus * u_t
 
     def __plan_matrix(self, inputs: np.ndarray) -> np.ndarray:
         """build Plan matrix using list of lambda functions defined in config. 
@@ -26,8 +42,8 @@ class LinearRegression:
     def __calculate_weights(
         self, pseudoinverse_plan_matrix: np.ndarray, targets: np.ndarray
     ) -> None:
-        """TODO calculate weights of the model using formula from the lecture"""
-        pass
+        """calculate weights of the model using formula from the lecture"""
+        return targets * pseudoinverse_plan_matrix
 
     def calculate_model_prediction(self, plan_matrix) -> np.ndarray:
         """calculate prediction of the model (y) using formula from the lecture"""

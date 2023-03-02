@@ -7,11 +7,13 @@ from models.linear_regression_model import LinearRegression
 
 def experiment(lin_reg_cfg, reg_coeff):
     lin_reg_model = LinearRegression(lin_reg_cfg.base_functions, reg_coeff)
-    linreg_dataset = LinRegDataset(lin_reg_cfg)
+    linreg_dataset = LinRegDataset(lin_reg_cfg)()
 
-    # predictions = lin_reg_model(linreg_dataset["inputs"])
-    # error = MSE(predictions, linreg_dataset["targets"])
-    #
+    lin_reg_model.train_model(
+        linreg_dataset["inputs"]["train"], linreg_dataset["targets"]["train"]
+    )
+    error = MSE(predictions, linreg_dataset["targets"])
+
     # if debugger:
     #     Visualisation.visualise_predicted_trace(
     #         predictions,
@@ -22,17 +24,15 @@ def experiment(lin_reg_cfg, reg_coeff):
 
 
 if __name__ == "__main__":
-    count_models_to_train = 100
+    min_count_models_to_train = 100
     polynomial_choose = [5, 200]
     reg_coeff_choose = [0, 5]
-    for _ in range(count_models_to_train):
+    for _ in range(min_count_models_to_train):
         polynimial = np.random.randint(polynomial_choose[0], polynomial_choose[1])
         reg_coeff = np.random.uniform(reg_coeff_choose[0], reg_coeff_choose[1])
-        experiment(
-            lin_reg_cfg.update(
-                base_functions=[
-                    lambda x, degree=i: x**degree for i in range(1, 1 + polynimial)
-                ]
-            ),
-            reg_coeff,
+        lin_reg_cfg.update(
+            base_functions=[
+                lambda x, degree=i: x**degree for i in range(1, 1 + polynimial)
+            ]
         )
+        experiment(lin_reg_cfg, reg_coeff)
