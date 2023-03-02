@@ -1,12 +1,3 @@
-import numpy as np
-
-
-def func(x):
-    return x**2
-
-
-inputs = np.array([1, 2, 3, 4, 5])
-ar = np.ones_like(inputs)
-mas = func(inputs)
-new = np.append(ar, [mas, mas])
-print(new)
+valid_set_percent = 0.1
+train_set_percent = 0.8
+print(round(valid_set_percent * 100 / (1 - train_set_percent)) / 100)
