@@ -3,6 +3,7 @@ import numpy as np
 from configs.linear_regression_cfg import cfg as lin_reg_cfg
 from datasets.linear_regression_dataset import LinRegDataset
 from models.linear_regression_model import LinearRegression
+from utils.metrics import MSE
 
 
 def experiment(lin_reg_cfg, reg_coeff):
@@ -12,7 +13,15 @@ def experiment(lin_reg_cfg, reg_coeff):
     lin_reg_model.train_model(
         linreg_dataset["inputs"]["train"], linreg_dataset["targets"]["train"]
     )
-    error = MSE(predictions, linreg_dataset["targets"])
+    predictions = lin_reg_model.calculate_model_prediction(
+        linreg_dataset["inputs"]["valid"]
+    )
+    error = MSE(
+        predictions,
+        linreg_dataset["targets"]["valid"],
+        reg_coeff,
+        lin_reg_model.weights,
+    )
 
     # if debugger:
     #     Visualisation.visualise_predicted_trace(

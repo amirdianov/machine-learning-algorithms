@@ -43,7 +43,8 @@ class LinearRegression:
         self, pseudoinverse_plan_matrix: np.ndarray, targets: np.ndarray
     ) -> None:
         """calculate weights of the model using formula from the lecture"""
-        return targets * pseudoinverse_plan_matrix
+        self.weights = targets * pseudoinverse_plan_matrix
+        return self.weights
 
     def calculate_model_prediction(self, plan_matrix) -> np.ndarray:
         """calculate prediction of the model (y) using formula from the lecture"""
