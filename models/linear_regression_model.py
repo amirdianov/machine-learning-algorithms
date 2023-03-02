@@ -11,7 +11,7 @@ class LinearRegression:
 
     def __pseudoinverse_matrix(self, matrix: np.ndarray) -> np.ndarray:
         """calculate pseudoinverse matrix with regularization using SVD"""
-        tuple_of_matrix = np.linalg.svd(matrix)
+        tuple_of_matrix = np.linalg.svd(matrix, full_matrices=False)
         print(
             tuple_of_matrix[0].shape, tuple_of_matrix[1].shape, tuple_of_matrix[2].shape
         )
@@ -29,7 +29,7 @@ class LinearRegression:
         sigma_plus = matrix_sigma_from_tuple.T
         v = tuple_of_matrix[2].T
         u_t = tuple_of_matrix[0].T
-        return v * sigma_plus * u_t
+        return v @ sigma_plus @ u_t
 
     def __plan_matrix(self, inputs: np.ndarray) -> np.ndarray:
         """build Plan matrix using list of lambda functions defined in config. 
@@ -43,7 +43,7 @@ class LinearRegression:
         self, pseudoinverse_plan_matrix: np.ndarray, targets: np.ndarray
     ) -> None:
         """calculate weights of the model using formula from the lecture"""
-        self.weights = targets * pseudoinverse_plan_matrix
+        self.weights = pseudoinverse_plan_matrix @ targets
         return self.weights
 
     def calculate_model_prediction(self, plan_matrix) -> np.ndarray:

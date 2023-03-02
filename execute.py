@@ -13,15 +13,14 @@ def experiment(lin_reg_cfg, reg_coeff):
     lin_reg_model.train_model(
         linreg_dataset["inputs"]["train"], linreg_dataset["targets"]["train"]
     )
-    predictions = lin_reg_model.calculate_model_prediction(
-        linreg_dataset["inputs"]["valid"]
-    )
+    predictions = lin_reg_model(linreg_dataset["inputs"]["valid"])
     error = MSE(
         predictions,
         linreg_dataset["targets"]["valid"],
         reg_coeff,
         lin_reg_model.weights,
     )
+    print(error)
 
     # if debugger:
     #     Visualisation.visualise_predicted_trace(
