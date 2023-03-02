@@ -32,10 +32,15 @@ class LinRegDataset:
         df_shuffled = df.sample(frac=1, random_state=1)
         inputs_shuffled = df_shuffled["inputs"]
         targets_shuffled = df_shuffled["targets"]
-        x_train, x_memory, y_train, y_memory = train_test_split(
+        self.inputs_train, x_memory, self.targets_train, y_memory = train_test_split(
             inputs_shuffled, targets_shuffled, train_size=train_set_percent
         )
-        x_valid, x_test, y_valid, y_test = train_test_split(
+        (
+            self.inputs_valid,
+            self.inputs_test,
+            self.targets_valid,
+            self.targets_test,
+        ) = train_test_split(
             x_memory,
             y_memory,
             test_size=round(valid_set_percent * 100 / (1 - train_set_percent)) / 100,
