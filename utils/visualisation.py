@@ -3,10 +3,12 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
+from utils.metrics import MSE
+
 
 class Visualisation:
     @staticmethod
-    def visualise_predicted_trace(model: tuple, title) -> None:
+    def visualise_predicted_trace(model: tuple, title=None) -> None:
         # visualise predicted trace and targets
         fig = go.Figure()
         prediction_test = model[0](model[2])
@@ -26,7 +28,7 @@ class Visualisation:
         fig.add_trace(trace1)
         fig.add_trace(trace2)
         fig.update_layout(
-            title=f"Полином степени {len(model[0].base_functions)}; MSE = {round(model[1], 2)}"
+            title=f"Полином степени {len(model[0].base_functions)}; MSE = {round(model[1], 2)}; {title}"
         )
         fig.write_html(f"{title}.html")
         fig.show()
@@ -35,21 +37,19 @@ class Visualisation:
     def visualise_best_models(models):
         x = []
         y = []
+        mse_test = []
         for model in models:
-            y.append(f"{model[1]}")
             x.append(
                 f"degree: {len(model[0].base_functions)}; reg_coeff: {model[0].reg_coeff}"
             )
-        fig = px.scatter(x=x, y=y)
+            y.append(f"{model[1]}")
+            prediction_test = model[0](model[2])
+            mse_test.append(MSE(prediction_test, model[3]))
+        fig = px.scatter(
+            x=x, y=y, hover_data=[mse_test], title="Ten best models"
+        ).update_layout(
+            xaxis_title="Max degree and regularisation coefficient",
+            yaxis_title="MSE in validation",
+        )
+        fig.write_html(f"Ten_best_models.html")
         fig.show()
-        # for model in models:
-        #     prediction_test = model[0](model[2])
-        #     fig = go.Figure()
-        #     trace1 = go.Scatter(x=model[2], y=model[3], mode="markers", name="target")
-        #     trace2 = go.Scatter(
-        #         x=model[2], y=prediction_test, mode="markers", name="prediction"
-        #     )
-        #     fig.add_trace(trace1)
-        #     fig.add_trace(trace2)
-        #     fig.update_layout(title=f"mse={model[1]}")
-        #     fig.show()

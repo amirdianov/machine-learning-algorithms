@@ -42,10 +42,12 @@ if __name__ == "__main__":
     models = sorted(models, key=lambda x: x[1])
     models_best = models[:10]
     Visualisation.visualise_best_models(models_best)
-    # lin_reg_cfg.update(
-    #     base_functions=[lambda x, degree=i: x**degree for i in range(1, 1 + 100)]
-    # )
-    # model = experiment(lin_reg_cfg, 0)
-    # Visualisation.visualise_predicted_trace(model, 'Without regularization')
-    # model = experiment(lin_reg_cfg, 1 * 10 ** (-5))
-    # Visualisation.visualise_predicted_trace(model, 'With regularization')
+    # for model in models_best[:3]:
+    #     Visualisation.visualise_predicted_trace(model)
+    lin_reg_cfg.update(
+        base_functions=[lambda x, degree=i: x**degree for i in range(1, 1 + 100)]
+    )
+    model = experiment(lin_reg_cfg, 0)
+    Visualisation.visualise_predicted_trace(model, "without_regularization")
+    model = experiment(lin_reg_cfg, 1 * 10 ** (-5))
+    Visualisation.visualise_predicted_trace(model, "with_regularization")
