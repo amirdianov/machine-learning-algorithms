@@ -4,6 +4,7 @@ from configs.linear_regression_cfg import cfg as lin_reg_cfg
 from datasets.linear_regression_dataset import LinRegDataset
 from models.linear_regression_model import LinearRegression
 from utils.metrics import MSE
+from utils.visualisation import Visualisation
 
 
 def experiment(lin_reg_cfg, reg_coeff):
@@ -13,34 +14,39 @@ def experiment(lin_reg_cfg, reg_coeff):
     lin_reg_model.train_model(
         linreg_dataset["inputs"]["train"], linreg_dataset["targets"]["train"]
     )
-    predictions = lin_reg_model(linreg_dataset["inputs"]["valid"])
-    error = MSE(
-        predictions,
-        linreg_dataset["targets"]["valid"],
-        reg_coeff,
-        lin_reg_model.weights,
-    )
-    print(error)
+    predictions_valid = lin_reg_model(linreg_dataset["inputs"]["valid"])
+    error_valid = MSE(predictions_valid, linreg_dataset["targets"]["valid"])
 
-    # if debugger:
-    #     Visualisation.visualise_predicted_trace(
-    #         predictions,
-    #         linreg_dataset["inputs"],
-    #         linreg_dataset["targets"],
-    #         plot_title=f"Полином степени {len(lin_reg_cfg.base_functions)}; MSE = {round(error, 2)}",
-    #     )
+    return (
+        lin_reg_model,
+        error_valid,
+        linreg_dataset["inputs"]["test"],
+        linreg_dataset["targets"]["test"],
+    )
 
 
 if __name__ == "__main__":
-    min_count_models_to_train = 100
-    polynomial_choose = [5, 200]
-    reg_coeff_choose = [0, 5]
-    for _ in range(min_count_models_to_train):
-        polynimial = np.random.randint(polynomial_choose[0], polynomial_choose[1])
-        reg_coeff = np.random.uniform(reg_coeff_choose[0], reg_coeff_choose[1])
-        lin_reg_cfg.update(
-            base_functions=[
-                lambda x, degree=i: x**degree for i in range(1, 1 + polynimial)
-            ]
-        )
-        experiment(lin_reg_cfg, reg_coeff)
+    # min_count_models_to_train = 100
+    # polynomial_choose = [5, 200]
+    # reg_coeff_choose = [0, 5]
+    # models = []
+    # for _ in range(min_count_models_to_train):
+    #     polynimial = np.random.randint(polynomial_choose[0], polynomial_choose[1])
+    #     reg_coeff = np.random.uniform(reg_coeff_choose[0], reg_coeff_choose[1])
+    #     lin_reg_cfg.update(
+    #         base_functions=[
+    #             lambda x, degree=i: x ** degree for i in range(1, 1 + polynimial)
+    #         ]
+    #     )
+    #     models.append(experiment(lin_reg_cfg, reg_coeff))
+    # models = sorted(models, key=lambda x: x[1])
+    # models_best = models[:10]
+    # Visualisation.visualise_best_models(
+    #     models_best)
+    lin_reg_cfg.update(
+        base_functions=[lambda x, degree=i: x**degree for i in range(1, 1 + 100)]
+    )
+    model = experiment(lin_reg_cfg, 0)
+    Visualisation.visualise_predicted_trace(model)
+    model = experiment(lin_reg_cfg, 1 * 10 ** (-5))
+    Visualisation.visualise_predicted_trace(model)

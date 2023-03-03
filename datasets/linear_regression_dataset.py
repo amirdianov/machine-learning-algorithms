@@ -29,7 +29,7 @@ class LinRegDataset:
             np.concatenate((inputs.reshape(-1, 1), targets.reshape(-1, 1)), axis=1),
             columns=["inputs", "targets"],
         )
-        df_shuffled = df.sample(frac=1, random_state=1)
+        df_shuffled = df.sample(frac=1)
         inputs_shuffled = df_shuffled["inputs"]
         targets_shuffled = df_shuffled["targets"]
         self.inputs_train, x_memory, self.targets_train, y_memory = train_test_split(
@@ -45,11 +45,6 @@ class LinRegDataset:
             y_memory,
             test_size=round(valid_set_percent * 100 / (1 - train_set_percent)) / 100,
         )
-        # df = pd.DataFrame(np.concatenate((x_train.to_numpy().reshape(-1, 1), y_train.to_numpy().reshape(-1, 1)), axis=1))
-        # print(df)
-        # print(x_train.shape,), print(y_train.shape)
-        # print(x_valid.shape), print(y_valid.shape)
-        # print(x_test.shape), print(y_test.shape)
 
     def __call__(self) -> dict:
         return {

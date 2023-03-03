@@ -12,9 +12,6 @@ class LinearRegression:
     def __pseudoinverse_matrix(self, matrix: np.ndarray) -> np.ndarray:
         """calculate pseudoinverse matrix with regularization using SVD"""
         tuple_of_matrix = np.linalg.svd(matrix, full_matrices=False)
-        print(
-            tuple_of_matrix[0].shape, tuple_of_matrix[1].shape, tuple_of_matrix[2].shape
-        )
         sigma_from_tuple = tuple_of_matrix[1]
         matrix_sigma_from_tuple = np.diag(sigma_from_tuple)
         matrix_sigma_from_tuple = np.where(
