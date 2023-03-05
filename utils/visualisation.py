@@ -30,7 +30,7 @@ class Visualisation:
         fig.update_layout(
             title=f"Полином степени {len(model[0].base_functions)}; MSE = {round(model[1], 2)}; {title}"
         )
-        fig.write_html(f"{title}.html")
+        # fig.write_html(f"{title}.html")
         fig.show()
 
     @staticmethod
@@ -51,5 +51,5 @@ class Visualisation:
             xaxis_title="Max degree and regularisation coefficient",
             yaxis_title="MSE in validation",
         )
-        fig.write_html(f"Ten_best_models.html")
+        # fig.write_html(f"Ten_best_models.html")
         fig.show()

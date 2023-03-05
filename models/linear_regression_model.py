@@ -17,9 +17,8 @@ class LinearRegression:
         matrix_sigma_from_tuple = np.where(
             matrix_sigma_from_tuple
             > np.finfo(float).eps
-            * max(
-                matrix_sigma_from_tuple.shape[0], matrix_sigma_from_tuple.shape[1] + 1
-            ),
+            * max(matrix_sigma_from_tuple.shape[0], matrix_sigma_from_tuple.shape[1])
+            * np.max(matrix_sigma_from_tuple),
             matrix_sigma_from_tuple / (matrix_sigma_from_tuple**2 + self.reg_coeff),
             0,
         )
