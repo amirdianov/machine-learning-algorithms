@@ -14,13 +14,21 @@ class LinearRegression:
         tuple_of_matrix = np.linalg.svd(matrix, full_matrices=False)
         sigma_from_tuple = tuple_of_matrix[1]
         matrix_sigma_from_tuple = np.diag(sigma_from_tuple)
-        matrix_sigma_from_tuple = np.where(
-            matrix_sigma_from_tuple
-            > np.finfo(float).eps
+        element_not_in_reg = matrix_sigma_from_tuple[0][0]
+        condition = (
+            np.finfo(float).eps
             * max(matrix_sigma_from_tuple.shape[0], matrix_sigma_from_tuple.shape[1])
-            * np.max(matrix_sigma_from_tuple),
+            * np.max(matrix_sigma_from_tuple)
+        )
+        matrix_sigma_from_tuple = np.where(
+            matrix_sigma_from_tuple > condition,
             matrix_sigma_from_tuple / (matrix_sigma_from_tuple**2 + self.reg_coeff),
             0,
+        )
+        matrix_sigma_from_tuple[0][0] = (
+            element_not_in_reg / element_not_in_reg**2
+            if element_not_in_reg > condition
+            else 0
         )
         sigma_plus = matrix_sigma_from_tuple.T
         v = tuple_of_matrix[2].T
