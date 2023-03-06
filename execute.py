@@ -7,10 +7,12 @@ from utils.metrics import MSE
 from utils.visualisation import Visualisation
 
 
-def experiment(lin_reg_cfg, reg_coeff):
+def experiment(lin_reg_cfg, reg_coeff, data=None):
     lin_reg_model = LinearRegression(lin_reg_cfg.base_functions, reg_coeff)
-    linreg_dataset = LinRegDataset(lin_reg_cfg)()
-
+    if data is None:
+        linreg_dataset = LinRegDataset(lin_reg_cfg)()
+    else:
+        linreg_dataset = data
     lin_reg_model.train_model(
         linreg_dataset["inputs"]["train"], linreg_dataset["targets"]["train"]
     )
@@ -47,7 +49,7 @@ if __name__ == "__main__":
     lin_reg_cfg.update(
         base_functions=[lambda x, degree=i: x**degree for i in range(1, 1 + 100)]
     )
-    model = experiment(lin_reg_cfg, 0)
-    Visualisation.visualise_predicted_trace(model, "without_regularization")
-    model = experiment(lin_reg_cfg, 1 * 10 ** (-5))
-    Visualisation.visualise_predicted_trace(model, "with_regularization")
+    dataset = LinRegDataset(lin_reg_cfg)()
+    model_no_reg = experiment(lin_reg_cfg, 0, dataset)
+    model_reg = experiment(lin_reg_cfg, 1 * 10 ** (-5), dataset)
+    Visualisation.visualise_predicted_trace([model_no_reg, model_reg], "Comparison")
