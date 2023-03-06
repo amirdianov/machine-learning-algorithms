@@ -51,11 +51,18 @@ class Visualisation:
             y.append(f"{model[1]}")
             prediction_test = model[0](model[2])
             mse_test.append(MSE(prediction_test, model[3]))
+        dataframe = pd.DataFrame(
+            data={"model": x, "mse_valid": y, "mse_test": mse_test}
+        )
         fig = px.scatter(
-            x=x, y=y, hover_data=[mse_test], title="Ten best models"
+            dataframe,
+            x="model",
+            y="mse_valid",
+            hover_data={"mse_test"},
+            title="Ten best models",
         ).update_layout(
             xaxis_title="Max degree and regularisation coefficient",
             yaxis_title="MSE in validation",
         )
-        # fig.write_html(f"Ten_best_models.html")
+        fig.write_html(f"Ten_best_models.html")
         fig.show()
