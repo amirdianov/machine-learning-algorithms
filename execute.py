@@ -1,8 +1,11 @@
-from models.linear_regression_model import LinearRegression
-from datasets.linear_regression_dataset import LinRegDataset
-from utils.metrics import MSE
-from utils.visualisation import Visualisation
+from dataset.sportsmans_height import Sportsmanheight
+from model.simple_classifier import Classifier
+import numpy as np
+import pandas as pd
+from config.cfg import cfg
+import plotly.graph_objects as go
+import copy
 
-def experiment(*args,**kwargs):
-    pass
-
+dataset = Sportsmanheight()()
+predictions = Classifier()(dataset['height'])
+gt = dataset['class']
