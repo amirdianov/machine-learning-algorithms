@@ -6,6 +6,26 @@ from sklearn.metrics import auc
 
 class Visualisation:
     @staticmethod
+    def visualise_roc_curve(metrics):
+        a_arr, b_arr = [], []
+        for data in metrics:
+            a_arr.append(data['a'])
+            b_arr.append(1 - data['b'])
+        ans = sorted(np.column_stack([np.array(a_arr), np.array(b_arr)]), key=lambda x: x[0], reverse=False)
+        df = pd.DataFrame(ans, columns=['a', 'b'])
+        S = auc(np.array(df['a']), np.array(df['b']))
+        fig = px.line(
+            df,
+            x="a",
+            y="b",
+            title=f'ROC curve with AUC: {S}',
+        ).update_layout(
+            xaxis_title="a",
+            yaxis_title="b-1",
+        )
+        fig.write_html(f"ROC_curve.html")
+        fig.show()
+    @staticmethod
     def visualise_pr_curve(metrics):
         recall_arr, precision_arr, accuracy_arr, f1_score_arr, threshold_arr = [], [], [], [], []
         for data in metrics:
@@ -39,7 +59,7 @@ class Visualisation:
             x="recall",
             y="precision",
             hover_data={"accuracy", "f1_score", "threshold"},
-            title=f'PR curve with AUC: {S}',
+            title=f'PR curve with AP: {S}',
         ).update_layout(
             xaxis_title="Recall",
             yaxis_title="Precision",

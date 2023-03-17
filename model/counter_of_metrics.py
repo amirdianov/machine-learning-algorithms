@@ -13,6 +13,8 @@ class CounterOfMetrics:
         metrics['recall'] = TP / (TP + FN)
         metrics['f1_score'] = 2 * (metrics['precision'] * metrics['recall']) / (
                 metrics['precision'] + metrics['recall']) if metrics['precision'] + metrics['recall'] != 0 else 0
+        metrics['a'] = FP / (TN + FP)
+        metrics['b'] = FN / (TP + FN)
         return metrics
 
     def count_section_metrics(self, t, threshold, not_last=True):
