@@ -7,7 +7,7 @@ class CounterOfMetrics:
         self.all_metrics = []
 
     def count_metrics(self, metrics):
-        TP, TN, FP, FN = metrics[(1, 1)], metrics[(0, 0)], metrics[(1, 0)], metrics[(0, 1)]
+        TP, TN, FP, FN = metrics[(1, 1)], metrics[(0, 0)], metrics[(0, 1)], metrics[(1, 0)]
         metrics['accuracy'] = (TP + TN) / (TP + TN + FP + FN)
         metrics['precision'] = TP / (TP + FP)
         metrics['recall'] = TP / (TP + FN)
@@ -15,15 +15,19 @@ class CounterOfMetrics:
                 metrics['precision'] + metrics['recall']) if metrics['precision'] + metrics['recall'] != 0 else 0
         return metrics
 
-    def count_section_metrics(self, t, probability):
+    def count_section_metrics(self, t, probability, not_last=True):
         metrics = {
+            # TrueNeg
             (0, 0): 0,
+            # FalsePos
             (0, 1): 0,
+            # FalseNeg
             (1, 0): 0,
+            # TruePos
             (1, 1): 0
         }
         t += 1
-        while True:
+        while True and not_last:
             if self.sorted_table[t][0] == probability:
                 self.sorted_table[t][0] = 1
                 t += 1
@@ -38,9 +42,12 @@ class CounterOfMetrics:
 
     def __call__(self):
         t = 0
-        while t < len(self.sorted_table) - 1:
+        while t < len(self.sorted_table):
             self.sorted_table[t][2] = 1
             probability = self.sorted_table[t][0]
-            t = self.count_section_metrics(t, probability)
-        print(self.all_metrics)
+            if t == len(self.sorted_table) - 1:
+                t = self.count_section_metrics(t, probability, not_last=False)
+            else:
+                t = self.count_section_metrics(t, probability)
+
         return self.all_metrics
