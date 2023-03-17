@@ -1,5 +1,7 @@
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
+from sklearn.metrics import auc
 
 
 class Visualisation:
@@ -14,7 +16,8 @@ class Visualisation:
                      reverse=False)
         ans.insert(0, [0, 0])
         ans.append([1, 0])
-        print(ans)
+        df = pd.DataFrame(ans, columns=['recall', 'precision'])
+        S = auc(np.array(df['recall']), np.array(df['precision']))
         for i in range(len(ans) - 1, 0, -1):
             ans[i - 1][1] = max(ans[i - 1][1],
                                 ans[i][1])
