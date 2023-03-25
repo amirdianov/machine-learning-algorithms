@@ -34,12 +34,11 @@ class BaseDataset(ABC):
         #  self.inputs_test, self.targets_test; you can use your code from previous homework
 
         df = pd.DataFrame(
-            np.concatenate((self.inputs.reshape(-1, 1), self.targets.reshape(-1, 1)), axis=1),
-            columns=["inputs", "targets"],
+            np.concatenate((self.inputs, self.targets.reshape(-1, 1)), axis=1)
         )
         df_shuffled = df.sample(frac=1)
-        inputs_shuffled = df_shuffled["inputs"]
-        targets_shuffled = df_shuffled["targets"]
+        inputs_shuffled = df_shuffled.iloc[:, :-1]
+        targets_shuffled = df_shuffled.iloc[:, -1:]
         self.inputs_train, x_memory, self.targets_train, y_memory = train_test_split(
             inputs_shuffled, targets_shuffled, train_size=self.train_set_percent
         )
@@ -54,14 +53,14 @@ class BaseDataset(ABC):
         pass
 
     def get_data_stats(self):
-        # TODO calculate mean and std of inputs vectors of training set by each dimension
-        pass
+        # calculate mean and std of inputs vectors of training set by each dimension
+        self.std = self.inputs_train.std()
+        self.mean = self.inputs_train.mean()
 
     def standartization(self):
         # TODO write standardization method (use stats from __get_data_stats)
         #   DON'T USE LOOP
         pass
-
 
 class BaseClassificationDataset(BaseDataset):
 
