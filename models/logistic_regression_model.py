@@ -1,3 +1,4 @@
+from math import e
 from typing import Union
 
 import numpy as np
@@ -31,7 +32,12 @@ class LogReg:
         # TODO softmax function realisation
         #  subtract max value of the model_output for numerical stability
 
-        pass
+        maxim_value = model_output.max(axis=0)[0]
+        model_output = model_output - maxim_value
+        sum_variables = sum([e**model_output[elem] for elem in range(model_output)])
+        for i in range(model_output):
+            model_output[i] = e**model_output[i] / sum_variables
+        return model_output
 
     def get_model_confidence(self, inputs: np.ndarray) -> np.ndarray:
         # calculate model confidence (y in lecture)
