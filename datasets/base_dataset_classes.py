@@ -60,7 +60,15 @@ class BaseDataset(ABC):
     def standartization(self):
         # TODO write standardization method (use stats from __get_data_stats)
         #   DON'T USE LOOP
+        self.inputs_train = (self.inputs_train - self.mean) / self.std
+        self.targets_train = (self.targets_train - self.mean) / self.std
+        self.inputs_valid = (self.inputs_valid - self.mean) / self.std
+        self.targets_valid = (self.targets_valid - self.mean) / self.std
+        self.inputs_test = (self.inputs_test - self.mean) / self.std
+        self.targets_test = (self.targets_test - self.mean) / self.std
+
         pass
+
 
 class BaseClassificationDataset(BaseDataset):
 
