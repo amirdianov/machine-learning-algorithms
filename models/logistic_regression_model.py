@@ -1,8 +1,10 @@
-from math import e
+from math import e, log
 from typing import Union
 
 import numpy as np
 from easydict import EasyDict
+
+from datasets.base_dataset_classes import BaseClassificationDataset
 
 
 class LogReg:
@@ -34,9 +36,9 @@ class LogReg:
 
         maxim_value = model_output.max(axis=0)[0]
         model_output = model_output - maxim_value
-        sum_variables = sum([e**model_output[elem] for elem in range(model_output)])
+        sum_variables = sum([e ** model_output[elem] for elem in range(model_output)])
         for i in range(model_output):
-            model_output[i] = e**model_output[i] / sum_variables
+            model_output[i] = e ** model_output[i] / sum_variables
         return model_output
 
     def get_model_confidence(self, inputs: np.ndarray) -> np.ndarray:
@@ -52,7 +54,13 @@ class LogReg:
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # TODO calculate gradient for w
         #  slide 10 in presentation
-        pass
+        summa = 0
+        for i in range(len(inputs)):
+            one_hot_encoding_vector = BaseClassificationDataset.onehotencoding(targets, self.k)
+            k_cls = np.where(one_hot_encoding_vector == 1)
+            summa += one_hot_encoding_vector[k_cls] * (
+                log(sum([e ** variable for variable in model_confidence])))
+        return summa
 
     def __get_gradient_b(self, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # TODO calculate gradient for b
