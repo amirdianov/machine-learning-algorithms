@@ -58,7 +58,7 @@ class BaseDataset(ABC):
         self.mean = self.inputs_train.mean()
 
     def standartization(self):
-        # TODO write standardization method (use stats from __get_data_stats)
+        # write standardization method (use stats from __get_data_stats)
         #   DON'T USE LOOP
         self.inputs_train = (self.inputs_train - self.mean) / self.std
         self.targets_train = (self.targets_train - self.mean) / self.std
@@ -82,4 +82,6 @@ class BaseClassificationDataset(BaseDataset):
     def onehotencoding(targets: np.ndarray, number_classes: int) -> np.ndarray:
         # TODO create matrix of onehot encoding vactors for input targets
         #  it is possible to do it without loop
-        pass
+        one_hot_encoding = np.zeros_like(targets)
+        one_hot_encoding[number_classes] = 1
+        return one_hot_encoding
