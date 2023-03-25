@@ -13,8 +13,7 @@ class LogReg:
         getattr(self, f'weights_init_{cfg.weights_init_type.name}')(**cfg.weights_init_kwargs)
 
     def weights_init_normal(self, sigma):
-        # TODO init weights with values from normal distribution
-        pass
+        self.weights_init_normal = np.random.randn(self.k, self.d)
 
     def weights_init_uniform(self, epsilon):
         # TODO init weights with values from uniform distribution BONUS TASK
