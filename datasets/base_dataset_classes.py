@@ -54,18 +54,20 @@ class BaseDataset(ABC):
 
     def get_data_stats(self):
         # calculate mean and std of inputs vectors of training set by each dimension
-        self.std = self.inputs_train.std()
-        self.mean = self.inputs_train.mean()
+        self.input_std = self.inputs_train.std()
+        self.input_mean = self.inputs_train.mean()
+        self.target_std = self.targets_train.std()
+        self.target_mean = self.targets_train.mean()
 
     def standartization(self):
         # write standardization method (use stats from __get_data_stats)
         #   DON'T USE LOOP
-        self.inputs_train = (self.inputs_train - self.mean) / self.std
-        self.targets_train = (self.targets_train - self.mean) / self.std
-        self.inputs_valid = (self.inputs_valid - self.mean) / self.std
-        self.targets_valid = (self.targets_valid - self.mean) / self.std
-        self.inputs_test = (self.inputs_test - self.mean) / self.std
-        self.targets_test = (self.targets_test - self.mean) / self.std
+        self.inputs_train = (self.inputs_train - self.input_mean) / self.input_std
+        self.targets_train = (self.targets_train - self.target_mean) / self.target_std
+        self.inputs_valid = (self.inputs_valid - self.input_mean) / self.input_std
+        self.targets_valid = (self.targets_valid - self.target_mean) / self.target_std
+        self.inputs_test = (self.inputs_test - self.input_mean) / self.input_std
+        self.targets_test = (self.targets_test - self.target_mean) / self.target_std
 
         pass
 
