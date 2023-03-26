@@ -82,7 +82,7 @@ class LogReg:
                                 targets_valid: Union[np.ndarray, None] = None,
                                 onehotencoding_valid: Union[np.ndarray, None] = None):
 
-        # TODO one step in Gradient descent:
+        # one step in Gradient descent:
         #  calculate model confidence;
         #  target function value calculation;
         #
@@ -114,7 +114,7 @@ class LogReg:
                                inputs_valid: Union[np.ndarray, None] = None,
                                targets_valid: Union[np.ndarray, None] = None,
                                onehotencoding_valid: Union[np.ndarray, None] = None):
-        # TODO loop stopping criteria - number of iterations of gradient_descent
+        # loop stopping criteria - number of iterations of gradient_descent
         # while not stopping criteria
         #   self.__gradient_descent_step(inputs, targets)
         for epoch in range(self.cfg.nb_epoch):
@@ -158,7 +158,7 @@ class LogReg:
 
     def __target_function_value(self, inputs: np.ndarray, targets: np.ndarray,
                                 model_confidence: Union[np.ndarray, None] = None) -> float:
-        # TODO target function value calculation
+        # target function value calculation
         #  use formula from slide 6 for computational stability
         summa = 0
         for i in range(len(inputs)):
@@ -168,7 +168,7 @@ class LogReg:
         return summa
 
     def __validate(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: Union[np.ndarray, None] = None):
-        # TODO metrics calculation: accuracy, confusion matrix
+        # metrics calculation: accuracy, confusion matrix
         matrix = metrics.conf_matrix(targets, np.argmax(model_confidence, axis=1))
         accuracy = metrics.accuracy(targets, np.argmax(model_confidence, axis=1))
         return matrix, accuracy
