@@ -8,7 +8,9 @@ from utils import metrics
 
 
 class LogReg:
-    BASK_UP = []
+    BACK_UP = {'target_value_func':[],
+               'accuracy_train': [],
+               'accuracy_valid': []}
 
     def __init__(self, cfg: EasyDict, number_classes: int, input_vector_dimension: int):
         self.k = number_classes
@@ -101,10 +103,13 @@ class LogReg:
         Y_valid = np.array(Y_valid)
         self.__weights_update(inputs_train, onehotencoding_train, Y_train)
         target_value_result = self.__target_function_value(inputs_train, onehotencoding_train, Y_train)
-        self.BASK_UP.append([epoch, target_value_result])
+        train_matrix, train_accuracy = self.__validate(inputs_train, targets_train, Y_train)
+        valid_matrix, valid_accuracy = self.__validate(inputs_valid, targets_valid, Y_valid)
+        self.BACK_UP['target_value_func'].append([epoch, target_value_result])
+        self.BACK_UP['accuracy_train'].append([epoch, train_accuracy])
+        self.BACK_UP['accuracy_valid'].append([epoch, valid_accuracy])
+
         if epoch % 10 == 0:
-            train_matrix, train_accuracy = self.__validate(inputs_train, targets_train, Y_train)
-            valid_matrix, valid_accuracy = self.__validate(inputs_valid, targets_valid, Y_valid)
             print(f'Target func value: {target_value_result}')
             print(f'Epoch:{epoch}. Для train, train_matrix: {train_matrix}, train_accuracy: {train_accuracy}')
             print(f'Epoch:{epoch}. Для valid, valid_matrix: {valid_matrix}, valid_accuracy: {valid_accuracy}')
