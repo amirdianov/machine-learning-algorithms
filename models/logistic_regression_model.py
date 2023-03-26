@@ -3,9 +3,10 @@ from typing import Union
 
 import numpy as np
 from easydict import EasyDict
+from scipy.special import softmax
 
 from datasets.base_dataset_classes import BaseClassificationDataset
-from scipy.special import softmax
+from utils import metrics
 
 
 class LogReg:
@@ -36,7 +37,7 @@ class LogReg:
         pass
 
     def __softmax(self, model_output: np.ndarray) -> np.ndarray:
-        # TODO softmax function realisation
+        # softmax function realisation
         #  subtract max value of the model_output for numerical stability
 
         maxim_value = np.max(model_output)
@@ -53,21 +54,21 @@ class LogReg:
         return y
 
     def __get_model_output(self, inputs: np.ndarray) -> np.ndarray:
-        # TODO calculate model output (z in lecture) using matrix multiplication DONT USE LOOPS
+        # calculate model output (z in lecture) using matrix multiplication DONT USE LOOPS
         return self.weights @ inputs.T + self.b
 
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
-        # TODO calculate gradient for w
+        # calculate gradient for w
         #  slide 10 in presentation
         return (model_confidence - targets).T @ inputs
 
     def __get_gradient_b(self, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
-        # TODO calculate gradient for b
+        # calculate gradient for b
         #  slide 10 in presentation
         return (model_confidence - targets).T @ np.ones(targets.shape[0])
 
     def __weights_update(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray):
-        # TODO update model weights
+        # update model weights
         #  slide 8, item 2 in presentation for updating weights
         w_grad = self.__get_gradient_w(inputs, targets,
                                        model_confidence)
@@ -75,9 +76,11 @@ class LogReg:
         self.weights -= self.cfg.gamma * w_grad
         self.b -= self.cfg.gamma * b_grad
 
-    def __gradient_descent_step(self, inputs_train: np.ndarray, targets_train: np.ndarray,
+    def __gradient_descent_step(self, inputs_train: np.ndarray, targets_train: np.ndarray, onehotencoding_train: np.ndarray,
                                 epoch: int, inputs_valid: Union[np.ndarray, None] = None,
-                                targets_valid: Union[np.ndarray, None] = None):
+                                targets_valid: Union[np.ndarray, None] = None,
+                                onehotencoding_valid: Union[np.ndarray, None] = None):
+
         # TODO one step in Gradient descent:
         #  calculate model confidence;
         #  target function value calculation;
@@ -92,16 +95,19 @@ class LogReg:
         for row in range(len(inputs_train)):
             Y.append(self.get_model_confidence(inputs_train[row]))
         Y = np.array(Y)
-        self.__weights_update(inputs_train, targets_train, Y)
+        self.__weights_update(inputs_train, onehotencoding_train, Y)
+        self.__validate(inputs_train, targets_train, Y)
 
     def gradient_descent_epoch(self, inputs_train: np.ndarray, targets_train: np.ndarray,
+                               onehotencoding_train: np.ndarray,
                                inputs_valid: Union[np.ndarray, None] = None,
-                               targets_valid: Union[np.ndarray, None] = None):
+                               targets_valid: Union[np.ndarray, None] = None,
+                               onehotencoding_valid: Union[np.ndarray, None] = None):
         # TODO loop stopping criteria - number of iterations of gradient_descent
         # while not stopping criteria
         #   self.__gradient_descent_step(inputs, targets)
         for epoch in range(self.cfg.nb_epoch):
-            self.__gradient_descent_step(inputs_train, targets_train, epoch, inputs_valid, targets_valid)
+            self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, epoch, inputs_valid, targets_valid, onehotencoding_valid)
 
     def gradient_descent_gradient_norm(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                        inputs_valid: Union[np.ndarray, None] = None,
@@ -128,11 +134,15 @@ class LogReg:
         #   self.__gradient_descent_step(inputs, targets)
         pass
 
-    def train(self, inputs_train: np.ndarray, targets_train: np.ndarray,
-              inputs_valid: Union[np.ndarray, None] = None, targets_valid: Union[np.ndarray, None] = None):
+    def train(self, inputs_train: np.ndarray, targets_train: np.ndarray, onehotencoding_train: np.ndarray,
+              inputs_valid: Union[np.ndarray, None] = None,
+              targets_valid: Union[np.ndarray, None] = None,
+              onehotencoding_valid: Union[np.ndarray, None] = None):
         getattr(self, f'gradient_descent_{self.cfg.gd_stopping_criteria.name}')(inputs_train, targets_train,
+                                                                                onehotencoding_train,
                                                                                 inputs_valid,
-                                                                                targets_valid)
+                                                                                targets_valid,
+                                                                                onehotencoding_valid)
 
     def __target_function_value(self, inputs: np.ndarray, targets: np.ndarray,
                                 model_confidence: Union[np.ndarray, None] = None) -> float:
@@ -148,7 +158,7 @@ class LogReg:
 
     def __validate(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: Union[np.ndarray, None] = None):
         # TODO metrics calculation: accuracy, confusion matrix
-        pass
+        matrix = metrics.conf_matrix(targets, np.argmax(model_confidence, axis=1))
 
     def __call__(self, inputs: np.ndarray):
         model_confidence = self.get_model_confidence(inputs)
