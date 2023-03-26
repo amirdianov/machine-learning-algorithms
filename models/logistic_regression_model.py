@@ -16,7 +16,8 @@ class LogReg:
         getattr(self, f'weights_init_{cfg.weights_init_type.name}')(**cfg.weights_init_kwargs)
 
     def weights_init_normal(self, sigma):
-        self.weights_init_normal = np.random.randn(self.k, self.d)
+        self.weights = np.random.randn(self.k, self.d)
+        self.b = np.random.randn(self.k)
 
     def weights_init_uniform(self, epsilon):
         # TODO init weights with values from uniform distribution BONUS TASK
@@ -34,10 +35,10 @@ class LogReg:
         # TODO softmax function realisation
         #  subtract max value of the model_output for numerical stability
 
-        maxim_value = model_output.max(axis=0)[0]
+        maxim_value = np.max(model_output)
         model_output = model_output - maxim_value
-        sum_variables = sum([e ** model_output[elem] for elem in range(model_output)])
-        for i in range(model_output):
+        sum_variables = sum([e ** model_output[elem] for elem in range(len(model_output))])
+        for i in range(len(model_output)):
             model_output[i] = e ** model_output[i] / sum_variables
         return model_output
 
@@ -49,18 +50,13 @@ class LogReg:
 
     def __get_model_output(self, inputs: np.ndarray) -> np.ndarray:
         # TODO calculate model output (z in lecture) using matrix multiplication DONT USE LOOPS
-        pass
+        return self.weights @ inputs.T + self.b
+
 
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # TODO calculate gradient for w
         #  slide 10 in presentation
-        summa = 0
-        for i in range(len(inputs)):
-            one_hot_encoding_vector = BaseClassificationDataset.onehotencoding(targets, self.k)
-            k_cls = np.where(one_hot_encoding_vector == 1)
-            summa += one_hot_encoding_vector[k_cls] * (
-                log(sum([e ** variable for variable in model_confidence])))
-        return summa
+        pass
 
     def __get_gradient_b(self, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # TODO calculate gradient for b
@@ -70,7 +66,11 @@ class LogReg:
     def __weights_update(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray):
         # TODO update model weights
         #  slide 8, item 2 in presentation for updating weights
-        pass
+        w_new = self.__get_gradient_w(inputs,
+                                      model_confidence,
+                                      self.get_model_confidence(inputs))
+        b_new = self.__get_gradient_b(model_confidence,
+                                      self.get_model_confidence(inputs))
 
     def __gradient_descent_step(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                 epoch: int, inputs_valid: Union[np.ndarray, None] = None,
@@ -85,7 +85,8 @@ class LogReg:
         :param targets_train: onehot-encoding
         :param epoch: number of loop iteration
         """
-        pass
+        self.get_model_confidence(inputs_train)
+        self.__weights_update()
 
     def gradient_descent_epoch(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                inputs_valid: Union[np.ndarray, None] = None,
@@ -131,7 +132,13 @@ class LogReg:
                                 model_confidence: Union[np.ndarray, None] = None) -> float:
         # TODO target function value calculation
         #  use formula from slide 6 for computational stability
-        pass
+        summa = 0
+        for i in range(len(inputs)):
+            one_hot_encoding_vector = BaseClassificationDataset.onehotencoding(targets, self.k)
+            k_cls = np.where(one_hot_encoding_vector == 1)
+            summa += one_hot_encoding_vector[k_cls] * (
+                log(sum([e ** variable for variable in model_confidence])))
+        return summa
 
     def __validate(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: Union[np.ndarray, None] = None):
         # TODO metrics calculation: accuracy, confusion matrix
