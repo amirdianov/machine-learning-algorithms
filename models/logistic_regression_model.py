@@ -5,6 +5,7 @@ import numpy as np
 from easydict import EasyDict
 
 from datasets.base_dataset_classes import BaseClassificationDataset
+from scipy.special import softmax
 
 
 class LogReg:
@@ -40,10 +41,10 @@ class LogReg:
 
         maxim_value = np.max(model_output)
         model_output = model_output - maxim_value
-        sum_variables = sum([e ** model_output[elem] for elem in range(len(model_output))])
-        for i in range(len(model_output)):
-            model_output[i] = e ** model_output[i] / sum_variables
-        return model_output
+        # sum_variables = sum([e ** model_output[elem] for elem in range(len(model_output))])
+        # for i in range(len(model_output)):
+        #     model_output[i] = e ** model_output[i] / sum_variables
+        return softmax(model_output)
 
     def get_model_confidence(self, inputs: np.ndarray) -> np.ndarray:
         # calculate model confidence (y in lecture)
@@ -58,19 +59,21 @@ class LogReg:
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # TODO calculate gradient for w
         #  slide 10 in presentation
-        pass
+        return (model_confidence - targets).T @ inputs
 
     def __get_gradient_b(self, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # TODO calculate gradient for b
         #  slide 10 in presentation
-        pass
+        return (model_confidence - targets).T @ np.ones(targets.shape[0])
 
     def __weights_update(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray):
         # TODO update model weights
         #  slide 8, item 2 in presentation for updating weights
-        w_new = self.__get_gradient_w(inputs, targets,
-                                      model_confidence)
-        b_new = self.__get_gradient_b(targets, model_confidence)
+        w_grad = self.__get_gradient_w(inputs, targets,
+                                       model_confidence)
+        b_grad = self.__get_gradient_b(targets, model_confidence)
+        self.weights -= self.cfg.gamma * w_grad
+        self.b -= self.cfg.gamma * b_grad
 
     def __gradient_descent_step(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                 epoch: int, inputs_valid: Union[np.ndarray, None] = None,
@@ -85,8 +88,11 @@ class LogReg:
         :param targets_train: onehot-encoding
         :param epoch: number of loop iteration
         """
-        model_conf = self.get_model_confidence(inputs_train)
-        self.__weights_update(inputs_train, targets_train, model_conf)
+        Y = []
+        for row in range(len(inputs_train)):
+            Y.append(self.get_model_confidence(inputs_train[row]))
+        Y = np.array(Y)
+        self.__weights_update(inputs_train, targets_train, Y)
 
     def gradient_descent_epoch(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                inputs_valid: Union[np.ndarray, None] = None,
