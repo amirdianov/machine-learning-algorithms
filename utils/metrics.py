@@ -14,6 +14,6 @@ def accuracy(predictions: np.ndarray, targets: np.ndarray) -> float:
     return count_true / len(predictions)
 
 
-def conf_matrix(targets, model_confidence):
+def conf_matrix(targets, predict):
     # build confusion matrix
-    return confusion_matrix(list(targets), list(model_confidence))
+    return confusion_matrix(list(targets), list(predict))

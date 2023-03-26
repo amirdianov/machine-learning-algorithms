@@ -16,7 +16,7 @@ class Visualisation:
         fig.update_layout(
             title=f"График зависимости {title} от номера итерации"
         )
-        fig.write_html(f"{title}.html")
+        # fig.write_html(f"{title}.html")
         fig.show()
 
     @staticmethod

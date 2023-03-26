@@ -181,6 +181,10 @@ class LogReg:
         return matrix, accuracy
 
     def __call__(self, inputs: np.ndarray):
-        model_confidence = self.get_model_confidence(inputs)
-        predictions = np.argmax(model_confidence, axis=0)
+        Y = []
+        for i in range(len(inputs)):
+            model_confidence = self.get_model_confidence(inputs[i])
+            Y.append(model_confidence)
+        Y = np.array(Y)
+        predictions = np.argmax(Y, axis=1)
         return predictions
