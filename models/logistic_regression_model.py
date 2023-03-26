@@ -76,7 +76,8 @@ class LogReg:
         self.weights -= self.cfg.gamma * w_grad
         self.b -= self.cfg.gamma * b_grad
 
-    def __gradient_descent_step(self, inputs_train: np.ndarray, targets_train: np.ndarray, onehotencoding_train: np.ndarray,
+    def __gradient_descent_step(self, inputs_train: np.ndarray, targets_train: np.ndarray,
+                                onehotencoding_train: np.ndarray,
                                 epoch: int, inputs_valid: Union[np.ndarray, None] = None,
                                 targets_valid: Union[np.ndarray, None] = None,
                                 onehotencoding_valid: Union[np.ndarray, None] = None):
@@ -91,12 +92,22 @@ class LogReg:
         :param targets_train: onehot-encoding
         :param epoch: number of loop iteration
         """
-        Y = []
+        Y_train = []
+        Y_valid = []
         for row in range(len(inputs_train)):
-            Y.append(self.get_model_confidence(inputs_train[row]))
-        Y = np.array(Y)
-        self.__weights_update(inputs_train, onehotencoding_train, Y)
-        self.__validate(inputs_train, targets_train, Y)
+            Y_train.append(self.get_model_confidence(inputs_train[row]))
+        for row in range(len(inputs_valid)):
+            Y_valid.append(self.get_model_confidence(inputs_valid[row]))
+        Y_train = np.array(Y_train)
+        Y_valid = np.array(Y_valid)
+        self.__weights_update(inputs_train, onehotencoding_train, Y_train)
+        if epoch % 50 == 0:
+            train_matrix, train_accuracy = self.__validate(inputs_train, targets_train, Y_train)
+            valid_matrix, valid_accuracy = self.__validate(inputs_valid, targets_valid, Y_valid)
+            ans = self.__target_function_value(inputs_train, onehotencoding_train, Y_train)
+            print(f'Target func value: {ans}')
+            print(f'Epoch:{epoch}. Для train, train_matrix: {train_matrix}, train_accuracy: {train_accuracy}')
+            print(f'Epoch:{epoch}. Для valid, valid_matrix: {valid_matrix}, valid_accuracy: {valid_accuracy}')
 
     def gradient_descent_epoch(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                onehotencoding_train: np.ndarray,
@@ -107,7 +118,8 @@ class LogReg:
         # while not stopping criteria
         #   self.__gradient_descent_step(inputs, targets)
         for epoch in range(self.cfg.nb_epoch):
-            self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, epoch, inputs_valid, targets_valid, onehotencoding_valid)
+            self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, epoch, inputs_valid,
+                                         targets_valid, onehotencoding_valid)
 
     def gradient_descent_gradient_norm(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                        inputs_valid: Union[np.ndarray, None] = None,
@@ -150,15 +162,16 @@ class LogReg:
         #  use formula from slide 6 for computational stability
         summa = 0
         for i in range(len(inputs)):
-            one_hot_encoding_vector = BaseClassificationDataset.onehotencoding(targets, self.k)
-            k_cls = np.where(one_hot_encoding_vector == 1)
-            summa += one_hot_encoding_vector[k_cls] * (
-                log(sum([e ** variable for variable in model_confidence])))
+            k_cls = np.where(targets[i] == 1)
+            summa += targets[i][k_cls] * (
+                log(sum([e ** variable for variable in model_confidence[i]]) - model_confidence[i][k_cls]))
         return summa
 
     def __validate(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: Union[np.ndarray, None] = None):
         # TODO metrics calculation: accuracy, confusion matrix
         matrix = metrics.conf_matrix(targets, np.argmax(model_confidence, axis=1))
+        accuracy = metrics.accuracy(targets, np.argmax(model_confidence, axis=1))
+        return matrix, accuracy
 
     def __call__(self, inputs: np.ndarray):
         model_confidence = self.get_model_confidence(inputs)
