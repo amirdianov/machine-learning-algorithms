@@ -54,10 +54,10 @@ class BaseDataset(ABC):
 
     def get_data_stats(self):
         # calculate mean and std of inputs vectors of training set by each dimension
-        self.input_std = self.inputs_train.std()
-        self.input_mean = self.inputs_train.mean()
-        self.target_std = self.targets_train.std()
-        self.target_mean = self.targets_train.mean()
+        self.input_std = np.mean(self.inputs_train)
+        self.input_mean = np.mean(self.inputs_train.mean())
+        # self.target_std = self.targets_train.std()
+        # self.target_mean = self.targets_train.mean()
 
     def standartization(self):
         # write standardization method (use stats from __get_data_stats)
@@ -68,8 +68,6 @@ class BaseDataset(ABC):
         self.targets_valid = (self.targets_valid - self.target_mean) / self.target_std
         self.inputs_test = (self.inputs_test - self.input_mean) / self.input_std
         self.targets_test = (self.targets_test - self.target_mean) / self.target_std
-
-        pass
 
 
 class BaseClassificationDataset(BaseDataset):
@@ -82,7 +80,7 @@ class BaseClassificationDataset(BaseDataset):
 
     @staticmethod
     def onehotencoding(targets: np.ndarray, number_classes: int) -> np.ndarray:
-        # TODO create matrix of onehot encoding vactors for input targets
+        # create matrix of onehot encoding vactors for input targets
         #  it is possible to do it without loop
         one_hot_encoding = np.zeros_like(targets)
         one_hot_encoding[number_classes] = 1
