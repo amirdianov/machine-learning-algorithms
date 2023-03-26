@@ -7,7 +7,7 @@ def MSE(predictions: np.ndarray, targets: np.ndarray) -> float:
 
 
 def accuracy(predictions: np.ndarray, targets: np.ndarray) -> float:
-    # TODO calculate accuracy
+    # calculate accuracy
     count_true = 0
     massive = zip(predictions, targets)
     count_true = sum([1 for pair in massive if pair[0] == pair[1]])

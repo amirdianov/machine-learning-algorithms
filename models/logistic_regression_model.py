@@ -1,15 +1,14 @@
-from math import e
 from typing import Union
 
 import numpy as np
 from easydict import EasyDict
 from scipy.special import softmax
 
-from datasets.base_dataset_classes import BaseClassificationDataset
 from utils import metrics
 
 
 class LogReg:
+    BASK_UP = []
 
     def __init__(self, cfg: EasyDict, number_classes: int, input_vector_dimension: int):
         self.k = number_classes
@@ -101,11 +100,12 @@ class LogReg:
         Y_train = np.array(Y_train)
         Y_valid = np.array(Y_valid)
         self.__weights_update(inputs_train, onehotencoding_train, Y_train)
+        target_value_result = self.__target_function_value(inputs_train, onehotencoding_train, Y_train)
+        self.BASK_UP.append([epoch, target_value_result])
         if epoch % 10 == 0:
             train_matrix, train_accuracy = self.__validate(inputs_train, targets_train, Y_train)
             valid_matrix, valid_accuracy = self.__validate(inputs_valid, targets_valid, Y_valid)
-            ans = self.__target_function_value(inputs_train, onehotencoding_train, Y_train)
-            print(f'Target func value: {ans}')
+            print(f'Target func value: {target_value_result}')
             print(f'Epoch:{epoch}. Для train, train_matrix: {train_matrix}, train_accuracy: {train_accuracy}')
             print(f'Epoch:{epoch}. Для valid, valid_matrix: {valid_matrix}, valid_accuracy: {valid_accuracy}')
 
