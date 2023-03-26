@@ -1,4 +1,4 @@
-from math import e, log
+from math import e
 from typing import Union
 
 import numpy as np
@@ -101,7 +101,7 @@ class LogReg:
         Y_train = np.array(Y_train)
         Y_valid = np.array(Y_valid)
         self.__weights_update(inputs_train, onehotencoding_train, Y_train)
-        if epoch % 50 == 0:
+        if epoch % 10 == 0:
             train_matrix, train_accuracy = self.__validate(inputs_train, targets_train, Y_train)
             valid_matrix, valid_accuracy = self.__validate(inputs_valid, targets_valid, Y_valid)
             ans = self.__target_function_value(inputs_train, onehotencoding_train, Y_train)
@@ -162,10 +162,12 @@ class LogReg:
         #  use formula from slide 6 for computational stability
         summa = 0
         for i in range(len(inputs)):
-            k_cls = np.where(targets[i] == 1)
-            summa += targets[i][k_cls] * (
-                log(sum([e ** variable for variable in model_confidence[i]]) - model_confidence[i][k_cls]))
-        return summa
+            summa += targets[i] @ np.log(model_confidence[i].T)
+        return -summa
+        #     k_cls = np.where(targets[i] == 1)
+        #     summa += targets[i][k_cls] @ (
+        #         np.log(sum([e ** variable for variable in model_confidence[i]]) - model_confidence[i][k_cls]))
+        # return summa
 
     def __validate(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: Union[np.ndarray, None] = None):
         # metrics calculation: accuracy, confusion matrix
