@@ -78,6 +78,7 @@ class BaseClassificationDataset(BaseDataset):
     def onehotencoding(targets: np.ndarray, number_classes: int) -> np.ndarray:
         # create matrix of onehot encoding vactors for input targets
         #  it is possible to do it without loop
-        one_hot_encoding = np.zeros_like(targets)
-        one_hot_encoding[number_classes] = 1
+        targets = np.array(targets.iloc[:, 0]).astype(int)
+        one_hot_encoding = np.zeros((targets.size, number_classes))
+        one_hot_encoding[np.arange(targets.size), targets] = 1
         return one_hot_encoding

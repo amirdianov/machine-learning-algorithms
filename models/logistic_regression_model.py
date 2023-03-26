@@ -14,9 +14,12 @@ class LogReg:
         self.d = input_vector_dimension
         self.cfg = cfg
         getattr(self, f'weights_init_{cfg.weights_init_type.name}')(**cfg.weights_init_kwargs)
+        getattr(self, f'b_init_{cfg.weights_init_type.name}')()
 
     def weights_init_normal(self, sigma):
         self.weights = np.random.randn(self.k, self.d)
+
+    def b_init_normal(self):
         self.b = np.random.randn(self.k)
 
     def weights_init_uniform(self, epsilon):
@@ -52,7 +55,6 @@ class LogReg:
         # TODO calculate model output (z in lecture) using matrix multiplication DONT USE LOOPS
         return self.weights @ inputs.T + self.b
 
-
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # TODO calculate gradient for w
         #  slide 10 in presentation
@@ -66,11 +68,9 @@ class LogReg:
     def __weights_update(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray):
         # TODO update model weights
         #  slide 8, item 2 in presentation for updating weights
-        w_new = self.__get_gradient_w(inputs,
-                                      model_confidence,
-                                      self.get_model_confidence(inputs))
-        b_new = self.__get_gradient_b(model_confidence,
-                                      self.get_model_confidence(inputs))
+        w_new = self.__get_gradient_w(inputs, targets,
+                                      model_confidence)
+        b_new = self.__get_gradient_b(targets, model_confidence)
 
     def __gradient_descent_step(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                 epoch: int, inputs_valid: Union[np.ndarray, None] = None,
@@ -85,8 +85,8 @@ class LogReg:
         :param targets_train: onehot-encoding
         :param epoch: number of loop iteration
         """
-        self.get_model_confidence(inputs_train)
-        self.__weights_update()
+        model_conf = self.get_model_confidence(inputs_train)
+        self.__weights_update(inputs_train, targets_train, model_conf)
 
     def gradient_descent_epoch(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                inputs_valid: Union[np.ndarray, None] = None,
