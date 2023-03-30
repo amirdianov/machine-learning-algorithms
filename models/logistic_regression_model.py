@@ -8,7 +8,7 @@ from utils import metrics
 
 
 class LogReg:
-    BACK_UP = {'target_value_func':[],
+    BACK_UP = {'target_value_func': [],
                'accuracy_train': [],
                'accuracy_valid': []}
 
@@ -19,23 +19,39 @@ class LogReg:
         getattr(self, f'weights_init_{cfg.weights_init_type.name}')(**cfg.weights_init_kwargs)
         getattr(self, f'b_init_{cfg.weights_init_type.name}')()
 
-    def weights_init_normal(self, sigma):
-        self.weights = np.random.randn(self.k, self.d)
+    def weights_init_normal(self, mu=0, sigma=1):
+        self.weights = np.random.normal(mu, sigma, size=(self.k, self.d))
 
-    def b_init_normal(self):
-        self.b = np.random.randn(self.k)
+    def b_init_normal(self, mu=0, sigma=1):
+        self.b = np.random.normal(mu, sigma, self.k)
 
-    def weights_init_uniform(self, epsilon):
-        # TODO init weights with values from uniform distribution BONUS TASK
-        pass
+    def weights_init_uniform(self, a, b):
+        self.weights = np.random.uniform(a, b, size=(self.k, self.d))
+
+    def b_init_uniform(self, a, b):
+        self.weights = np.random.uniform(a, b, self.k)
 
     def weights_init_xavier(self, n_in, n_out):
-        # TODO Xavier weights initialisation BONUS TASK
-        pass
+        # Xavier weights initialisation BONUS TASK
+        variance = 2 / (n_in + n_out)
+        std_dev = np.sqrt(variance)
+        self.weights = np.random.normal(loc=0.0, scale=std_dev, size=(self.k, self.d))
 
-    def weights_init_he(self, n_in):
-        # TODO He weights initialisation BONUS TASK
-        pass
+    def b_init_xavier(self, n_in, n_out):
+        # Xavier weights initialisation BONUS TASK
+        variance = 2 / (n_in + n_out)
+        std_dev = np.sqrt(variance)
+        self.b = np.random.normal(loc=0.0, scale=std_dev, size=self.k)
+
+    def weights_init_he(self, n):
+        variance = 2 / n
+        std_dev = np.sqrt(variance)
+        self.weights = np.random.normal(loc=0.0, scale=std_dev, size=(self.k, self.d))
+
+    def b_init_he(self, n):
+        variance = 2 / n
+        std_dev = np.sqrt(variance)
+        self.b = np.random.normal(loc=0.0, scale=std_dev, size=self.k)
 
     def __softmax(self, model_output: np.ndarray) -> np.ndarray:
         # softmax function realisation
