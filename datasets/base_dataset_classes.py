@@ -49,8 +49,10 @@ class BaseDataset(ABC):
         )
 
     def normalization(self):
-        # TODO write normalization method BONUS TASK
-        pass
+        # write normalization method BONUS TASK
+        self.inputs_train = (self.inputs_train - self.inputs_train.min()) / (self.inputs_train.max() - self.inputs_train.min())
+        self.inputs_valid = (self.inputs_valid - self.inputs_valid.min()) / (self.inputs_valid.max() - self.inputs_valid.min())
+        self.inputs_test = (self.inputs_test - self.inputs_test.min()) / (self.inputs_test.max() - self.inputs_test.min())
 
     def get_data_stats(self):
         # calculate mean and std of inputs vectors of training set by each dimension
