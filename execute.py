@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 
 from config.logistic_regression_config import cfg
@@ -17,3 +19,7 @@ Visualisation.visualisation(log_reg.BACK_UP)
 predict = log_reg(np.array(test['inputs']))
 print(metrics.accuracy(predict, np.array(test['targets'].iloc[:, 0].astype(int))))
 print(metrics.conf_matrix(np.array(test['targets'].iloc[:, 0].astype(int)), predict))
+# saving model
+pickle.dump(log_reg, open('model.pkl', 'wb'))
+# load model
+log_reg_pickled_model = pickle.load(open('model.pkl', 'rb'))
