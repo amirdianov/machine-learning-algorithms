@@ -7,8 +7,9 @@ class Visualisation:
         x, y = [], []
         fig = go.Figure()
         for pair in data:
-            x.append(pair[0])
-            y.append(pair[1])
+            if pair[0] not in x:
+                x.append(pair[0])
+                y.append(pair[1])
         trace = go.Scatter(
             x=x, y=y, mode="lines", name='Graphic'
         )
