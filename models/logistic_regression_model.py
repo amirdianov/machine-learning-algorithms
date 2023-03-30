@@ -77,7 +77,7 @@ class LogReg:
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # calculate gradient for w
         #  slide 10 in presentation
-        return (model_confidence - targets).T @ inputs
+        return (model_confidence - targets).T @ inputs + self.cfg.lam * self.weights
 
     def __get_gradient_b(self, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # calculate gradient for b
