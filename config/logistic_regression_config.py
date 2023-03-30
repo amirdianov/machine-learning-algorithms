@@ -20,3 +20,5 @@ cfg.gd_stopping_criteria = GDStoppingCriteria.epoch
 cfg.nb_epoch = 100
 
 cfg.lam = 0.01
+# TODO threshhold for gradient_descent_difference_norm
+cfg.threshold = None

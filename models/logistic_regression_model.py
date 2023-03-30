@@ -17,6 +17,7 @@ class LogReg:
         self.k = number_classes
         self.d = input_vector_dimension
         self.cfg = cfg
+        self.valid_accuracy = [0.0]
         getattr(self, f'weights_init_{cfg.weights_init_type.name}')(**cfg.weights_init_kwargs)
         getattr(self, f'b_init_{cfg.weights_init_type.name}')()
 
@@ -91,14 +92,15 @@ class LogReg:
         w_grad = self.__get_gradient_w(inputs, targets,
                                        model_confidence)
         b_grad = self.__get_gradient_b(targets, model_confidence)
+        self.difference_weights = self.weights - self.cfg.gamma * w_grad
         self.weights -= self.cfg.gamma * w_grad
         self.b -= self.cfg.gamma * b_grad
 
     def __gradient_descent_step(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                 onehotencoding_train: np.ndarray,
-                                epoch: int, inputs_valid: Union[np.ndarray, None] = None,
+                                inputs_valid: Union[np.ndarray, None] = None,
                                 targets_valid: Union[np.ndarray, None] = None,
-                                onehotencoding_valid: Union[np.ndarray, None] = None):
+                                onehotencoding_valid: Union[np.ndarray, None] = None, epoch: int = None):
 
         # one step in Gradient descent:
         #  calculate model confidence;
@@ -125,7 +127,7 @@ class LogReg:
         self.BACK_UP['target_value_func'].append([epoch, target_value_result])
         self.BACK_UP['accuracy_train'].append([epoch, train_accuracy])
         self.BACK_UP['accuracy_valid'].append([epoch, valid_accuracy])
-
+        self.valid_accuracy.append(valid_accuracy)
         if epoch % 10 == 0:
             print(f'Target func value: {target_value_result}')
             print(f'Epoch:{epoch}. Для train, train_matrix: {train_matrix}, train_accuracy: {train_accuracy}')
@@ -141,8 +143,8 @@ class LogReg:
         #   self.__gradient_descent_step(inputs, targets)
         if not batching:
             for epoch in range(self.cfg.nb_epoch):
-                    self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, epoch, inputs_valid,
-                                                 targets_valid, onehotencoding_valid)
+                self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, inputs_valid,
+                                             targets_valid, onehotencoding_valid, epoch=epoch)
         else:
             for epoch in range(self.cfg.nb_epoch):
                 train_df = pd.DataFrame(zip(inputs_train, targets_train, onehotencoding_train),
@@ -154,8 +156,9 @@ class LogReg:
                         [list(mas) for mas in batch['input']])
                     targets_train_new = np.array([mas for mas in batch['target']])
                     onehotencoding_train_new = np.array([list(mas) for mas in batch['onehot']])
-                    self.__gradient_descent_step(inputs_train_new, targets_train_new, onehotencoding_train_new, epoch, inputs_valid,
-                                                 targets_valid, onehotencoding_valid)
+                    self.__gradient_descent_step(inputs_train_new, targets_train_new, onehotencoding_train_new,
+                                                 inputs_valid,
+                                                 targets_valid, onehotencoding_valid, epoch=epoch)
 
     def gradient_descent_gradient_norm(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                        inputs_valid: Union[np.ndarray, None] = None,
@@ -166,21 +169,26 @@ class LogReg:
         pass
 
     def gradient_descent_difference_norm(self, inputs_train: np.ndarray, targets_train: np.ndarray,
+                                         onehotencoding_train: np.ndarray,
                                          inputs_valid: Union[np.ndarray, None] = None,
-                                         targets_valid: Union[np.ndarray, None] = None):
-        # TODO gradient_descent with stopping criteria - norm of difference between ￼w_k-1 and w_k;￼BONUS TASK
-        # while not stopping criteria
-        #   self.__gradient_descent_step(inputs, targets)
-        pass
+                                         targets_valid: Union[np.ndarray, None] = None,
+                                         onehotencoding_valid: Union[np.ndarray, None] = None):
+        # gradient_descent with stopping criteria - norm of difference between ￼w_k-1 and w_k;￼BONUS TASK
+        while np.linalg.norm(self.difference_weights) < self.cfg.treshhold:
+            self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, inputs_valid,
+                                         targets_valid, onehotencoding_valid)
 
     def gradient_descent_metric_value(self, inputs_train: np.ndarray, targets_train: np.ndarray,
-                                      inputs_valid: Union[np.ndarray, None] = None,
-                                      targets_valid: Union[np.ndarray, None] = None):
-        # TODO gradient_descent with stopping criteria - metric (accuracy, f1 score or other) value on validation set is not growing;￼
+                                         onehotencoding_train: np.ndarray,
+                                         inputs_valid: Union[np.ndarray, None] = None,
+                                         targets_valid: Union[np.ndarray, None] = None,
+                                         onehotencoding_valid: Union[np.ndarray, None] = None):
+        # gradient_descent with stopping criteria - metric (accuracy, f1 score or other) value on validation set is not growing;￼
         #  BONUS TASK
-        # while not stopping criteria
-        #   self.__gradient_descent_step(inputs, targets)
-        pass
+        while self.valid_accuracy[-1] - self.valid_accuracy[-2] > 0:
+            self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, inputs_valid,
+                                         targets_valid, onehotencoding_valid)
+
 
     def train(self, inputs_train: np.ndarray, targets_train: np.ndarray, onehotencoding_train: np.ndarray,
               inputs_valid: Union[np.ndarray, None] = None,
