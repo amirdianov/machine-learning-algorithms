@@ -1,6 +1,7 @@
 from typing import Union
 
 import numpy as np
+import pandas as pd
 from easydict import EasyDict
 from scipy.special import softmax
 
@@ -134,13 +135,27 @@ class LogReg:
                                onehotencoding_train: np.ndarray,
                                inputs_valid: Union[np.ndarray, None] = None,
                                targets_valid: Union[np.ndarray, None] = None,
-                               onehotencoding_valid: Union[np.ndarray, None] = None):
+                               onehotencoding_valid: Union[np.ndarray, None] = None, batching=False):
         # loop stopping criteria - number of iterations of gradient_descent
         # while not stopping criteria
         #   self.__gradient_descent_step(inputs, targets)
-        for epoch in range(self.cfg.nb_epoch):
-            self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, epoch, inputs_valid,
-                                         targets_valid, onehotencoding_valid)
+        if not batching:
+            for epoch in range(self.cfg.nb_epoch):
+                    self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, epoch, inputs_valid,
+                                                 targets_valid, onehotencoding_valid)
+        else:
+            for epoch in range(self.cfg.nb_epoch):
+                train_df = pd.DataFrame(zip(inputs_train, targets_train, onehotencoding_train),
+                                        columns=['input', 'target', 'onehot'])
+                train_df_shuffled = train_df.sample(frac=1)
+                all_batches = np.array_split(train_df_shuffled, 10)
+                for batch in all_batches:
+                    inputs_train_new = np.array(
+                        [list(mas) for mas in batch['input']])
+                    targets_train_new = np.array([mas for mas in batch['target']])
+                    onehotencoding_train_new = np.array([list(mas) for mas in batch['onehot']])
+                    self.__gradient_descent_step(inputs_train_new, targets_train_new, onehotencoding_train_new, epoch, inputs_valid,
+                                                 targets_valid, onehotencoding_valid)
 
     def gradient_descent_gradient_norm(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                        inputs_valid: Union[np.ndarray, None] = None,
@@ -175,7 +190,7 @@ class LogReg:
                                                                                 onehotencoding_train,
                                                                                 inputs_valid,
                                                                                 targets_valid,
-                                                                                onehotencoding_valid)
+                                                                                onehotencoding_valid, True)
 
     def __target_function_value(self, inputs: np.ndarray, targets: np.ndarray,
                                 model_confidence: Union[np.ndarray, None] = None) -> float:
