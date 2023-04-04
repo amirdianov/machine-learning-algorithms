@@ -3,7 +3,6 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from easydict import EasyDict
-from scipy.special import softmax
 
 from utils import metrics
 
@@ -61,10 +60,10 @@ class LogReg:
 
         maxim_value = np.max(model_output)
         model_output = model_output - maxim_value
-        # sum_variables = sum([e ** model_output[elem] for elem in range(len(model_output))])
-        # for i in range(len(model_output)):
-        #     model_output[i] = e ** model_output[i] / sum_variables
-        return softmax(model_output)
+        model_output = np.exp(model_output)
+        summa = model_output.sum(axis=1)
+        y = model_output / summa.reshape(-1, 1)
+        return y
 
     def get_model_confidence(self, inputs: np.ndarray) -> np.ndarray:
         # calculate model confidence (y in lecture)
@@ -74,7 +73,7 @@ class LogReg:
 
     def __get_model_output(self, inputs: np.ndarray) -> np.ndarray:
         # calculate model output (z in lecture) using matrix multiplication DONT USE LOOPS
-        return self.weights @ inputs.T + self.b
+        return (self.weights @ inputs.T).T + self.b
 
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         # calculate gradient for w
@@ -112,14 +111,10 @@ class LogReg:
         :param targets_train: onehot-encoding
         :param epoch: number of loop iteration
         """
-        Y_train = []
-        Y_valid = []
-        for row in range(len(inputs_train)):
-            Y_train.append(self.get_model_confidence(inputs_train[row]))
-        for row in range(len(inputs_valid)):
-            Y_valid.append(self.get_model_confidence(inputs_valid[row]))
-        Y_train = np.array(Y_train)
-        Y_valid = np.array(Y_valid)
+
+        Y_train = self.get_model_confidence(inputs_train)
+        Y_valid = self.get_model_confidence(inputs_valid)
+
         self.__weights_update(inputs_train, onehotencoding_train, Y_train)
         target_value_result = self.__target_function_value(inputs_train, onehotencoding_train, Y_train)
         train_matrix, train_accuracy = self.__validate(inputs_train, targets_train, Y_train)
@@ -179,16 +174,15 @@ class LogReg:
                                          targets_valid, onehotencoding_valid)
 
     def gradient_descent_metric_value(self, inputs_train: np.ndarray, targets_train: np.ndarray,
-                                         onehotencoding_train: np.ndarray,
-                                         inputs_valid: Union[np.ndarray, None] = None,
-                                         targets_valid: Union[np.ndarray, None] = None,
-                                         onehotencoding_valid: Union[np.ndarray, None] = None):
+                                      onehotencoding_train: np.ndarray,
+                                      inputs_valid: Union[np.ndarray, None] = None,
+                                      targets_valid: Union[np.ndarray, None] = None,
+                                      onehotencoding_valid: Union[np.ndarray, None] = None):
         # gradient_descent with stopping criteria - metric (accuracy, f1 score or other) value on validation set is not growing;￼
         #  BONUS TASK
         while self.valid_accuracy[-1] - self.valid_accuracy[-2] > 0:
             self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, inputs_valid,
                                          targets_valid, onehotencoding_valid)
-
 
     def train(self, inputs_train: np.ndarray, targets_train: np.ndarray, onehotencoding_train: np.ndarray,
               inputs_valid: Union[np.ndarray, None] = None,
@@ -198,20 +192,14 @@ class LogReg:
                                                                                 onehotencoding_train,
                                                                                 inputs_valid,
                                                                                 targets_valid,
-                                                                                onehotencoding_valid, True)
+                                                                                onehotencoding_valid, False)
 
     def __target_function_value(self, inputs: np.ndarray, targets: np.ndarray,
                                 model_confidence: Union[np.ndarray, None] = None) -> float:
-        # target function value calculation
-        #  use formula from slide 6 for computational stability
         summa = 0
         for i in range(len(inputs)):
-            summa += targets[i] @ np.log(model_confidence[i].T)
-        return -summa
-        #     k_cls = np.where(targets[i] == 1)
-        #     summa += targets[i][k_cls] @ (
-        #         np.log(sum([e ** variable for variable in model_confidence[i]]) - model_confidence[i][k_cls]))
-        # return summa
+            summa += targets[i] @ np.log(1 / model_confidence[i].T)
+        return summa
 
     def __validate(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: Union[np.ndarray, None] = None):
         # metrics calculation: accuracy, confusion matrix
@@ -220,10 +208,6 @@ class LogReg:
         return matrix, accuracy
 
     def __call__(self, inputs: np.ndarray):
-        Y = []
-        for i in range(len(inputs)):
-            model_confidence = self.get_model_confidence(inputs[i])
-            Y.append(model_confidence)
-        Y = np.array(Y)
+        Y = self.get_model_confidence(inputs)
         predictions = np.argmax(Y, axis=1)
         return predictions
