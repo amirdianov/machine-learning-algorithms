@@ -19,13 +19,14 @@ class DT:
         # self.max_nb_thresholds = max_nb_thresholds
         self.root = Node()
 
-    def train(self, inputs, targets):
-        entropy_val = self.__shannon_entropy(targets, len(targets))
+    def train(self, inputs, targets, type_task):
+        value = self.__shannon_entropy(targets, len(targets)) if type_task.name == 'classification' \
+            else self.__disp(targets)
         self.__nb_dim = inputs.shape[1]
         self.__all_dim = np.arange(self.__nb_dim)
 
         self.__get_axis, self.__get_threshold = self.__get_all_axis, self.__generate_all_threshold
-        self.__build_tree(inputs, targets, self.root, 1, entropy_val)
+        self.__build_tree(inputs, targets, self.root, 1, value)
 
     def __get_random_axis(self):
         pass
@@ -64,7 +65,7 @@ class DT:
         :return: дисперсия
         np.std(arr)
         """
-        pass
+        return np.std(targets) ** 2
 
     @staticmethod
     def __shannon_entropy(targets, N):

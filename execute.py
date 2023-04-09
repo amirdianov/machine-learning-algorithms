@@ -8,4 +8,4 @@ valid = Digits(cfg)(SetType.valid)
 test = Digits(cfg)(SetType.test)
 
 des_tr = DT(train['inputs'].shape[0])
-des_tr.train(train['inputs'], train['targets'])
+des_tr.train(train['inputs'], train['targets'], SetType.classification)
