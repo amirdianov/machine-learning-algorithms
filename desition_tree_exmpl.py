@@ -46,7 +46,7 @@ class DT:
             unique, counts = np.unique(targets, return_counts=True)
             uniq_count = np.column_stack((unique, counts))
             for elem in uniq_count:
-                result[elem[0]] += elem[1]
+                result[int(elem[0])] += elem[1]
             return result / len(targets)
         elif self.type_of_task == 'regression':
             return np.meam(targets)
@@ -93,7 +93,7 @@ class DT:
             entropy += variable * np.log2(variable)
         return -entropy
 
-    def __inf_gain(self, targets_left, targets_right, node_disp, N):
+    def __inf_gain(self, targets_left, targets_right, node_ent_disp, N):
         """
         :param targets_left: targets для элементов попавших в левый узел
         :param targets_right: targets для элементов попавших в правый узел
@@ -102,20 +102,43 @@ class DT:
         :return: information gain, энтропия для левого узла, энтропия для правого узла
         ТУТ ТОЖЕ НЕ ЦИКЛОВ, используйте собственную фунцию self.__disp
         """
-        pass
+        if self.type_of_task == 'classification':
+            ent_left = self.__shannon_entropy(targets_left, len(targets_left))
+            ent_right = self.__shannon_entropy(targets_right, len(targets_right))
+            return node_ent_disp - len(targets_left) / N * ent_left - \
+                   len(targets_right) / N * ent_right, ent_left, ent_right
+        elif self.type_of_task == 'regression':
+            disp_left = self.__disp(targets_left)
+            disp_right = self.__disp(targets_right)
+            return node_ent_disp - len(targets_left) / N * disp_left - \
+                   len(targets_right) / N * disp_right, disp_left, disp_right
 
     def __build_splitting_node(self, inputs, targets, entropy, N):
-        pass
+        df = np.hstack((inputs, targets))
+        values_for_return = []
+        maxim_inform_gain = 0
+        for d in range(inputs.shape[1]):
+            thresholds = np.unique(inputs[:, d:d + 1])
+            for tr in range(len(thresholds)):
+                elem = df[:, d].astype(int)
+                left = df[np.where(elem <= tr)]
+                right = df[np.where(elem > tr)]
+                left_target, right_target = left[:, -1], right[:, -1]
+                inform_gain, left_ent_or_disp, right_ent_or_disp = \
+                    self.__inf_gain(left_target, right_target, entropy, N)
+                if inform_gain > maxim_inform_gain:
+                    maxim_inform_gain = inform_gain
+                    values_for_return = [d, tr, np.where(elem <= tr), np.where(elem > tr), left_ent_or_disp, right_ent_or_disp]
+        return values_for_return
 
-    def __build_tree(self, inputs, targets, node, depth, entropy):
+    def __build_tree(self, inputs, targets, node, depth, entropy_disp):
 
         N = len(targets)
-        if depth >= self.max_depth or entropy <= self.min_entropy or N <= self.min_elem:
+        if depth >= self.max_depth or entropy_disp <= self.min_entropy or N <= self.min_elem:
             node.terminal_node = self.__create_term_arr(targets)
         else:
-
-            ax_max, tay_max, ind_left_max, ind_right_max, disp_left_max, disp_right_max = self.__build_splitting_node(
-                inputs, targets, entropy, N)
+            ax_max, tay_max, ind_left_max, ind_right_max, disp_left_max, disp_right_max = \
+                self.__build_splitting_node(inputs, targets, entropy_disp, N)
             node.split_ind = ax_max
             node.split_val = tay_max
             node.left = Node()

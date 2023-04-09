@@ -42,9 +42,12 @@ class BaseDataset(ABC):
             test_size=round(self.valid_set_percent * 100 / (1 - self.train_set_percent)) / 100,
         )
         self.inputs_train = np.array(self.inputs_train)
-        self.targets_train = (np.array(self.targets_train)).reshape(self.targets_train.shape[0],)
+        self.targets_train = np.array(self.targets_train)
+        # self.targets_train = (np.array(self.targets_train)).reshape(self.targets_train.shape[0],)
         self.inputs_valid = np.array(self.inputs_valid)
-        self.targets_valid = (np.array(self.targets_valid)).reshape(self.targets_valid.shape[0],)
+        self.targets_valid = np.array(self.targets_valid)
+        # self.targets_valid = (np.array(self.targets_valid)).reshape(self.targets_valid.shape[0],)
         self.inputs_test = np.array(self.inputs_test)
-        self.targets_test = (np.array(self.targets_test)).reshape(self.targets_test.shape[0],)
+        self.targets_test = np.array(self.targets_test)
+        # self.targets_test = (np.array(self.targets_test)).reshape(self.targets_test.shape[0],)
 
