@@ -49,7 +49,7 @@ class DT:
                 result[int(elem[0])] += elem[1]
             return result / len(targets)
         elif self.type_of_task == 'regression':
-            return np.meam(targets)
+            return np.mean(targets)
 
     def __generate_all_threshold(self, inputs):
         """
