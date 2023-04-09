@@ -12,7 +12,7 @@ class Node:
 
 class DT:
 
-    def __init__(self, type_of_task, max_depth=0, min_entropy=0, min_elem=0):
+    def __init__(self, type_of_task, max_depth=10, min_entropy=0, min_elem=0):
         self.max_depth = max_depth
         self.min_entropy = min_entropy
         self.min_elem = min_elem
