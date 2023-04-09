@@ -2,6 +2,11 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 
 
+def MSE(predictions: np.ndarray, targets: np.ndarray) -> float:
+    """calculate loss of your model without loops"""
+    return np.square(np.subtract(targets, predictions)).mean()
+
+
 def accuracy(predictions: np.ndarray, targets: np.ndarray) -> float:
     # calculate accuracy
     count_true = 0

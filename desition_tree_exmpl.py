@@ -108,8 +108,8 @@ class DT:
             return node_ent_disp - len(targets_left) / N * ent_left - \
                    len(targets_right) / N * ent_right, ent_left, ent_right
         elif self.type_of_task == 'regression':
-            disp_left = self.__disp(targets_left)
-            disp_right = self.__disp(targets_right)
+            disp_left = 0 if len(targets_left) == 0 else self.__disp(targets_left)
+            disp_right = 0 if len(targets_right) == 0 else self.__disp(targets_right)
             return node_ent_disp - len(targets_left) / N * disp_left - \
                    len(targets_right) / N * disp_right, disp_left, disp_right
 
@@ -126,14 +126,13 @@ class DT:
                 left_target, right_target = left[:, -1], right[:, -1]
                 inform_gain, left_ent_or_disp, right_ent_or_disp = \
                     self.__inf_gain(left_target, right_target, entropy, N)
-                if inform_gain > maxim_inform_gain:
+                if inform_gain >= maxim_inform_gain:
                     maxim_inform_gain = inform_gain
                     values_for_return = [d, tr, np.where(elem <= tr), np.where(elem > tr), left_ent_or_disp,
                                          right_ent_or_disp]
         return values_for_return
 
     def __build_tree(self, inputs, targets, node, depth, entropy_disp):
-
         N = len(targets)
         if depth >= self.max_depth or entropy_disp <= self.min_entropy or N <= self.min_elem:
             node.terminal_node = self.__create_term_arr(targets)
@@ -161,5 +160,8 @@ class DT:
                     node = node.left_child
                 else:
                     node = node.right_child
-            predictions.append(np.argmax(node.terminal_node))
+            if self.type_of_task == 'classification':
+                predictions.append(np.argmax(node.terminal_node))
+            else:
+                predictions.append(node.terminal_node)
         return predictions
