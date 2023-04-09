@@ -12,15 +12,16 @@ class Node:
 
 class DT:
 
-    def __init__(self, max_depth, min_entropy=0, min_elem=0):
+    def __init__(self, max_depth, type_of_task, min_entropy=0, min_elem=0):
         self.max_depth = max_depth
         self.min_entropy = min_entropy
         self.min_elem = min_elem
         # self.max_nb_thresholds = max_nb_thresholds
         self.root = Node()
+        self.type_of_task = type_of_task
 
-    def train(self, inputs, targets, type_task):
-        value = self.__shannon_entropy(targets, len(targets)) if type_task.name == 'classification' \
+    def train(self, inputs, targets):
+        value = self.__shannon_entropy(targets, len(targets)) if self.type_of_task == 'classification' \
             else self.__disp(targets)
         self.__nb_dim = inputs.shape[1]
         self.__all_dim = np.arange(self.__nb_dim)
@@ -34,13 +35,21 @@ class DT:
     def __get_all_axis(self):
         pass
 
-    def __create_term_arr(self, target):
+    def __create_term_arr(self, targets):
         """
         :param target: классы элементов обучающей выборки, дошедшие до узла
         :return: среднее значение
         np.mean(target)
         """
-        pass
+        if self.type_of_task == 'classification':
+            result = np.array([0] * 10)
+            unique, counts = np.unique(targets, return_counts=True)
+            uniq_count = np.column_stack((unique, counts))
+            for elem in uniq_count:
+                result[elem[0]] += elem[1]
+            return result / len(targets)
+        elif self.type_of_task == 'regression':
+            return np.meam(targets)
 
     def __generate_all_threshold(self, inputs):
         """
