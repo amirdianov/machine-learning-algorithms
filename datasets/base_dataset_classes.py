@@ -41,3 +41,10 @@ class BaseDataset(ABC):
             y_memory,
             test_size=round(self.valid_set_percent * 100 / (1 - self.train_set_percent)) / 100,
         )
+        self.inputs_train = np.array(self.inputs_train)
+        self.targets_train = np.array(self.targets_train)
+        self.inputs_valid = np.array(self.inputs_valid)
+        self.targets_valid = np.array(self.targets_valid)
+        self.inputs_test = np.array(self.inputs_test)
+        self.targets_test = np.array(self.targets_test)
+

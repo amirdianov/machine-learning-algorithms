@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Optional
 
 
 class Node:
@@ -10,17 +9,18 @@ class Node:
         self.split_val = None
         self.terminal_node = None
 
+
 class DT:
 
     def __init__(self, max_depth, min_entropy=0, min_elem=0):
         self.max_depth = max_depth
         self.min_entropy = min_entropy
         self.min_elem = min_elem
-        #self.max_nb_thresholds = max_nb_thresholds
+        # self.max_nb_thresholds = max_nb_thresholds
         self.root = Node()
 
     def train(self, inputs, targets):
-        entropy_val = self.__shannon_entropy(targets,len(targets))
+        entropy_val = self.__shannon_entropy(targets, len(targets))
         self.__nb_dim = inputs.shape[1]
         self.__all_dim = np.arange(self.__nb_dim)
 
@@ -75,7 +75,13 @@ class DT:
                 :return: энтропи/
                 np.std(arr)
         """
-        pass
+        entropy = 0
+        unique, counts = np.unique(targets, return_counts=True)
+        result = np.column_stack((unique, counts))
+        for element in result:
+            variable = element[1] / N
+            entropy += variable * np.log2(variable)
+        return -entropy
 
     def __inf_gain(self, targets_left, targets_right, node_disp, N):
         """
@@ -88,7 +94,7 @@ class DT:
         """
         pass
 
-    def __build_splitting_node(self,inputs,targets,entropy,N):
+    def __build_splitting_node(self, inputs, targets, entropy, N):
         pass
 
     def __build_tree(self, inputs, targets, node, depth, entropy):
@@ -98,7 +104,8 @@ class DT:
             node.terminal_node = self.__create_term_arr(targets)
         else:
 
-            ax_max, tay_max, ind_left_max, ind_right_max, disp_left_max, disp_right_max = self.__build_splitting_node(inputs, targets, entropy, N)
+            ax_max, tay_max, ind_left_max, ind_right_max, disp_left_max, disp_right_max = self.__build_splitting_node(
+                inputs, targets, entropy, N)
             node.split_ind = ax_max
             node.split_val = tay_max
             node.left = Node()
@@ -112,4 +119,3 @@ class DT:
         :return: предсказания целевых значений
         """
         pass
-
