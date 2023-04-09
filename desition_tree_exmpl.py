@@ -12,7 +12,7 @@ class Node:
 
 class DT:
 
-    def __init__(self, max_depth, type_of_task, min_entropy=0, min_elem=0):
+    def __init__(self, type_of_task, max_depth=0, min_entropy=0, min_elem=0):
         self.max_depth = max_depth
         self.min_entropy = min_entropy
         self.min_elem = min_elem
@@ -128,7 +128,8 @@ class DT:
                     self.__inf_gain(left_target, right_target, entropy, N)
                 if inform_gain > maxim_inform_gain:
                     maxim_inform_gain = inform_gain
-                    values_for_return = [d, tr, np.where(elem <= tr), np.where(elem > tr), left_ent_or_disp, right_ent_or_disp]
+                    values_for_return = [d, tr, np.where(elem <= tr), np.where(elem > tr), left_ent_or_disp,
+                                         right_ent_or_disp]
         return values_for_return
 
     def __build_tree(self, inputs, targets, node, depth, entropy_disp):
@@ -141,14 +142,24 @@ class DT:
                 self.__build_splitting_node(inputs, targets, entropy_disp, N)
             node.split_ind = ax_max
             node.split_val = tay_max
-            node.left = Node()
-            node.right = Node()
-            self.__build_tree(inputs[ind_left_max], targets[ind_left_max], node.left, depth + 1, disp_left_max)
-            self.__build_tree(inputs[ind_right_max], targets[ind_right_max], node.right, depth + 1, disp_right_max)
+            node.left_child = Node()
+            node.right_child = Node()
+            self.__build_tree(inputs[ind_left_max], targets[ind_left_max], node.left_child, depth + 1, disp_left_max)
+            self.__build_tree(inputs[ind_right_max], targets[ind_right_max], node.right_child, depth + 1,
+                              disp_right_max)
 
     def get_predictions(self, inputs):
         """
         :param inputs: вектора характеристик
         :return: предсказания целевых значений
         """
-        pass
+        predictions = []
+        for obj in inputs:
+            node = self.root
+            while node.terminal_node is None:
+                if obj[node.split_ind] <= node.split_val:
+                    node = node.left_child
+                else:
+                    node = node.right_child
+            predictions.append(np.argmax(node.terminal_node))
+        return predictions

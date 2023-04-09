@@ -7,6 +7,6 @@ train = Digits(cfg)(SetType.train)
 valid = Digits(cfg)(SetType.valid)
 test = Digits(cfg)(SetType.test)
 
-des_tr = DT(train['inputs'].shape[0], SetTypeOfTask.regression.name)
+des_tr = DT(SetTypeOfTask.classification.name)
 des_tr.train(train['inputs'], train['targets'])
 des_tr.get_predictions(valid['inputs'])
