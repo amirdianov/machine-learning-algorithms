@@ -1,15 +1,13 @@
-import numpy as np
 from easydict import EasyDict
 from sklearn.datasets import load_digits
-from utils.enums import SetType
 
 from datasets.base_dataset_classes import BaseDataset
+from utils.enums import SetType
 
 
 class Digits(BaseDataset):
 
     def __init__(self, cfg: EasyDict):
-
         super(Digits, self).__init__(cfg.train_set_percent, cfg.valid_set_percent)
         digits = load_digits()
 
@@ -19,6 +17,8 @@ class Digits(BaseDataset):
 
         # divide into sets
         self.divide_into_sets()
+        self.get_data_stats()
+        self.standartization()
 
     @property
     def inputs(self):
