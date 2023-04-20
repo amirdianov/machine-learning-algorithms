@@ -1,4 +1,5 @@
-import numpy as np
+from desition_tree_exmpl import DT
+from utils.enums import SetTypeOfTask
 
 
 class RandomForest():
@@ -14,7 +15,8 @@ class RandomForest():
     def train(self, inputs, targets, nb_classes):
         self.trees = []
         for i in range(self.nb_trees):
-            pass
+            tree = DT(SetTypeOfTask.classification.name)
+            self.trees.append(tree)
 
     def get_prediction(self, inputs):
         """
@@ -23,5 +25,3 @@ class RandomForest():
         np.argmax - для предсказания класса
         """
         pass
-
-

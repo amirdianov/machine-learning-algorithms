@@ -39,7 +39,7 @@ class DT:
         self.__build_tree(inputs, targets, self.root, 1, value)
 
     def __get_random_axis(self):
-        pass
+        return np.random.choice(self.__all_dim, self.max_nb_dim_to_check)
 
     def __get_all_axis(self):
         return self.__all_dim
@@ -74,7 +74,7 @@ class DT:
         :return: пороги, выбранные с помощью равномерного распределения.
         Количество порогов определяется значением параметра self.max_nb_thresholds
         """
-        pass
+        return np.random.choice(self.__generate_all_threshold(inputs), self.max_nb_thresholds)
 
     @staticmethod
     def __disp(targets):
@@ -133,8 +133,8 @@ class DT:
         df = np.hstack((inputs, targets))
         values_for_return = []
         maxim_inform_gain = 0
-        for d in range(inputs.shape[1]):
-            thresholds = np.unique(inputs[:, d:d + 1])
+        for d in self.__get_axis():
+            thresholds = self.__get_threshold(inputs[:, d:d + 1])
             for tr in range(len(thresholds)):
                 elem = df[:, d].astype(int)
                 left = df[np.where(elem <= tr)]
