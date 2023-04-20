@@ -182,4 +182,4 @@ class DT:
                 predictions.append(node.terminal_node)
             else:
                 predictions.append(node.terminal_node)
-        return predictions
+        return np.array(predictions)
