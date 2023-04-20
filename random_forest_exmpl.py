@@ -1,3 +1,5 @@
+import numpy as np
+
 from desition_tree_exmpl import DT
 from utils.enums import SetTypeOfTask
 
@@ -13,10 +15,11 @@ class RandomForest():
         self.max_nb_thresholds = max_nb_thresholds
 
     def train(self, inputs, targets, nb_classes):
-        self.trees = []
+        self.trees_predictions = []
         for i in range(self.nb_trees):
             tree = DT(SetTypeOfTask.classification.name)
-            self.trees.append(tree)
+            tree.train(inputs, targets, (self.max_nb_dim_to_check, self.max_nb_thresholds))
+            self.trees_predictionss.append(tree.get_predictions)
 
     def get_prediction(self, inputs):
         """
@@ -24,4 +27,4 @@ class RandomForest():
         :return: предсказания классов или вектора уверенности
         np.argmax - для предсказания класса
         """
-        pass
+        return np.argmax(np.sum(self.trees_predictions) / self.nb_trees)

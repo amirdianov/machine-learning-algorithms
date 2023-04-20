@@ -7,8 +7,8 @@ train = Digits(cfg)(SetType.train)
 valid = Digits(cfg)(SetType.valid)
 test = Digits(cfg)(SetType.test)
 
-rand_fr_tr = RandomForest
-rand_fr_tr.train(train['inputs'], train['targets'])
+rand_fr_tr = RandomForest()
+rand_fr_tr.train(train['inputs'], train['targets'], 10)
 
 # des_tr = DT(SetTypeOfTask.classification.name)
 # des_tr.train(train['inputs'], train['targets'])

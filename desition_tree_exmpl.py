@@ -163,7 +163,7 @@ class DT:
             self.__build_tree(inputs[ind_right_max], targets[ind_right_max], node.right_child, depth + 1,
                               disp_right_max)
 
-    def get_predictions(self, inputs):
+    def get_predictions(self, inputs, prediction_vector_classif=False):
         """
         :param inputs: вектора характеристик
         :return: предсказания целевых значений
@@ -176,8 +176,10 @@ class DT:
                     node = node.left_child
                 else:
                     node = node.right_child
-            if self.type_of_task == 'classification':
+            if self.type_of_task == 'classification' and prediction_vector_classif == False:
                 predictions.append(np.argmax(node.terminal_node))
+            elif self.type_of_task == 'classification' and prediction_vector_classif == True:
+                predictions.append(node.terminal_node)
             else:
                 predictions.append(node.terminal_node)
         return predictions
