@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 
 
@@ -20,20 +22,27 @@ class DT:
         self.root = Node()
         self.type_of_task = type_of_task
 
-    def train(self, inputs, targets):
+    def train(self, inputs, targets, random_mode: Optional[tuple] = None):
         value = self.__shannon_entropy(targets, len(targets)) if self.type_of_task == 'classification' \
             else self.__disp(targets)
         self.__nb_dim = inputs.shape[1]
         self.__all_dim = np.arange(self.__nb_dim)
 
-        self.__get_axis, self.__get_threshold = self.__get_all_axis, self.__generate_all_threshold
+        # self.__get_axis, self.__get_threshold = self.__get_all_axis, self.__generate_all_threshold
+        # self.__build_tree(inputs, targets, self.root, 1, value)
+
+        if random_mode:
+            self.max_nb_dim_to_check, self.max_nb_thresholds = random_mode[0], random_mode[1]  # L_1, L_2
+            self.__get_axis, self.__get_threshold = self.__get_random_axis, self.__generate_random_threshold
+        else:
+            self.__get_axis, self.__get_threshold = self.__get_all_axis, self.__generate_all_threshold
         self.__build_tree(inputs, targets, self.root, 1, value)
 
     def __get_random_axis(self):
         pass
 
     def __get_all_axis(self):
-        pass
+        return self.__all_dim
 
     def __create_term_arr(self, targets):
         """
@@ -57,7 +66,7 @@ class DT:
         :return: все пороги, количество порогов определяется значением параметра self.max_nb_thresholds
         Использовать np.min(inputs) и np.max(inputs)
         """
-        pass
+        return np.unique(inputs)
 
     def __generate_random_threshold(self, inputs):
         """
@@ -114,6 +123,13 @@ class DT:
                    len(targets_right) / N * disp_right, disp_left, disp_right
 
     def __build_splitting_node(self, inputs, targets, entropy, N):
+
+        """
+        you can use the following loop
+            for axis in self.__get_axis():
+                thresholds = self.__get_threshold(inputs[:, axis])
+                for thr in thresholds:
+        """
         df = np.hstack((inputs, targets))
         values_for_return = []
         maxim_inform_gain = 0
