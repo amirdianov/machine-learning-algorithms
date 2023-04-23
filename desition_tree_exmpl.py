@@ -18,7 +18,6 @@ class DT:
         self.max_depth = max_depth
         self.min_entropy = min_entropy
         self.min_elem = min_elem
-        # self.max_nb_thresholds = max_nb_thresholds
         self.root = Node()
         self.type_of_task = type_of_task
 
@@ -28,8 +27,6 @@ class DT:
         self.__nb_dim = inputs.shape[1]
         self.__all_dim = np.arange(self.__nb_dim)
 
-        # self.__get_axis, self.__get_threshold = self.__get_all_axis, self.__generate_all_threshold
-        # self.__build_tree(inputs, targets, self.root, 1, value)
 
         if random_mode:
             self.max_nb_dim_to_check, self.max_nb_thresholds = random_mode[0], random_mode[1]  # L_1, L_2
@@ -136,15 +133,17 @@ class DT:
         for d in self.__get_axis():
             thresholds = self.__get_threshold(inputs[:, d:d + 1])
             for tr in range(len(thresholds)):
-                elem = df[:, d].astype(int)
-                left = df[np.where(elem <= tr)]
-                right = df[np.where(elem > tr)]
+                elem = df[:, d]
+                cond = elem <= thresholds[tr]
+                left = df[cond]
+                right = df[~cond]
                 left_target, right_target = left[:, -1], right[:, -1]
                 inform_gain, left_ent_or_disp, right_ent_or_disp = \
                     self.__inf_gain(left_target, right_target, entropy, N)
                 if inform_gain >= maxim_inform_gain:
                     maxim_inform_gain = inform_gain
-                    values_for_return = [d, tr, np.where(elem <= tr), np.where(elem > tr), left_ent_or_disp,
+                    values_for_return = [d, thresholds[tr], np.where(elem <= thresholds[tr]),
+                                         np.where(elem > thresholds[tr]), left_ent_or_disp,
                                          right_ent_or_disp]
         return values_for_return
 
