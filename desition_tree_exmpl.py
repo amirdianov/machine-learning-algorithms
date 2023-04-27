@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 
 
@@ -16,24 +18,27 @@ class DT:
         self.max_depth = max_depth
         self.min_entropy = min_entropy
         self.min_elem = min_elem
-        # self.max_nb_thresholds = max_nb_thresholds
         self.root = Node()
         self.type_of_task = type_of_task
 
-    def train(self, inputs, targets):
+    def train(self, inputs, targets, random_mode: Optional[tuple] = None):
         value = self.__shannon_entropy(targets, len(targets)) if self.type_of_task == 'classification' \
             else self.__disp(targets)
         self.__nb_dim = inputs.shape[1]
         self.__all_dim = np.arange(self.__nb_dim)
 
-        self.__get_axis, self.__get_threshold = self.__get_all_axis, self.__generate_all_threshold
-        self.__build_tree(inputs, targets, self.root, 1, value)
+        if random_mode:
+            self.max_nb_dim_to_check, self.max_nb_thresholds = random_mode[0], random_mode[1]  # L_1, L_2
+            self.__get_axis, self.__get_threshold = self.__get_random_axis, self.__generate_random_threshold
+        else:
+            self.__get_axis, self.__get_threshold = self.__get_all_axis, self.__generate_all_threshold
+        self.__build_tree(inputs, targets, self.root, 0, value)
 
     def __get_random_axis(self):
-        pass
+        return np.random.choice(self.__all_dim, self.max_nb_dim_to_check)
 
     def __get_all_axis(self):
-        pass
+        return self.__all_dim
 
     def __create_term_arr(self, targets):
         """
@@ -57,7 +62,7 @@ class DT:
         :return: все пороги, количество порогов определяется значением параметра self.max_nb_thresholds
         Использовать np.min(inputs) и np.max(inputs)
         """
-        pass
+        return np.unique(inputs)
 
     def __generate_random_threshold(self, inputs):
         """
@@ -65,7 +70,7 @@ class DT:
         :return: пороги, выбранные с помощью равномерного распределения.
         Количество порогов определяется значением параметра self.max_nb_thresholds
         """
-        pass
+        return np.random.choice(self.__generate_all_threshold(inputs), self.max_nb_thresholds)
 
     @staticmethod
     def __disp(targets):
@@ -117,18 +122,20 @@ class DT:
         df = np.hstack((inputs, targets))
         values_for_return = []
         maxim_inform_gain = 0
-        for d in range(inputs.shape[1]):
-            thresholds = np.unique(inputs[:, d:d + 1])
+        for d in self.__get_axis():
+            thresholds = self.__get_threshold(inputs[:, d:d + 1])
             for tr in range(len(thresholds)):
-                elem = df[:, d].astype(int)
-                left = df[np.where(elem <= tr)]
-                right = df[np.where(elem > tr)]
+                elem = df[:, d]
+                cond = elem <= thresholds[tr]
+                left = df[cond]
+                right = df[~cond]
                 left_target, right_target = left[:, -1], right[:, -1]
                 inform_gain, left_ent_or_disp, right_ent_or_disp = \
                     self.__inf_gain(left_target, right_target, entropy, N)
                 if inform_gain >= maxim_inform_gain:
                     maxim_inform_gain = inform_gain
-                    values_for_return = [d, tr, np.where(elem <= tr), np.where(elem > tr), left_ent_or_disp,
+                    values_for_return = [d, thresholds[tr], np.where(elem <= thresholds[tr]),
+                                         np.where(elem > thresholds[tr]), left_ent_or_disp,
                                          right_ent_or_disp]
         return values_for_return
 
@@ -147,7 +154,7 @@ class DT:
             self.__build_tree(inputs[ind_right_max], targets[ind_right_max], node.right_child, depth + 1,
                               disp_right_max)
 
-    def get_predictions(self, inputs):
+    def get_predictions(self, inputs, prediction_vector_classif=False):
         """
         :param inputs: вектора характеристик
         :return: предсказания целевых значений
@@ -160,8 +167,10 @@ class DT:
                     node = node.left_child
                 else:
                     node = node.right_child
-            if self.type_of_task == 'classification':
+            if self.type_of_task == 'classification' and prediction_vector_classif == False:
                 predictions.append(np.argmax(node.terminal_node))
+            elif self.type_of_task == 'classification' and prediction_vector_classif == True:
+                predictions.append(node.terminal_node)
             else:
                 predictions.append(node.terminal_node)
-        return predictions
+        return np.array(predictions)
