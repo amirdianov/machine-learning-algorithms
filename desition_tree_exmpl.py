@@ -1,7 +1,6 @@
 from typing import Optional
 
 import numpy as np
-import pandas as pd
 
 
 class Node:
@@ -96,9 +95,6 @@ class DT:
         targets_flag = targets == 1
         over_zero = np.sum(weights[targets_flag])
         less_zero = np.sum(weights[~targets_flag])
-        result = np.column_stack((targets, weights))
-        df = pd.DataFrame(data=result, columns=["targets", "weights"])
-        df_new = df.groupby("targets")["weights"].apply(np.sum)
         entropy += over_zero / np.sum(weights)
         entropy += less_zero / np.sum(weights)
         return -entropy
@@ -178,7 +174,7 @@ class DT:
                 else:
                     node = node.right_child
             if self.type_of_task == 'classification' and prediction_vector_classif == False:
-                predictions.append(np.argmax(node.terminal_node))
+                predictions.append(-1 if np.argmax(node.terminal_node) == 0 else 1)
             elif self.type_of_task == 'classification' and prediction_vector_classif == True:
                 predictions.append(node.terminal_node)
             else:

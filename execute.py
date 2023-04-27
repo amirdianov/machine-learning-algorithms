@@ -1,10 +1,13 @@
 from adaboost_students import Adaboost
 from dataset_titanik import Titanic
+from utils.metrics import conf_matrix
 
 N = 30
 model = Adaboost(N)
 train_test_data = Titanic('titanik_train_data.csv', 'titanik_test_data.csv')()
 model.train(train_test_data['train_target'], train_test_data['train_input'])
+predict = model.get_prediction(train_test_data['test_input'])
+print(conf_matrix(predict, train_test_data['test_target']))
 # model
 # des_tr = DT(SetTypeOfTask.classification.name)
 # des_tr.train(des_tr[], train['targets'])
