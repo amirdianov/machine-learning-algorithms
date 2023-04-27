@@ -41,19 +41,20 @@ class DT:
     def __get_all_axis(self):
         return self.__all_dim
 
-    def __create_term_arr(self, targets):
+    def __create_term_arr(self, targets, weights):
         """
         :param target: классы элементов обучающей выборки, дошедшие до узла
         :return: среднее значение
         np.mean(target)
         """
         if self.type_of_task == 'classification':
-            result = np.array([0] * 10)
-            unique, counts = np.unique(targets, return_counts=True)
-            uniq_count = np.column_stack((unique, counts))
-            for elem in uniq_count:
-                result[int(elem[0])] += elem[1]
-            return result / len(targets)
+            result = []
+            targets_flag = targets == 1
+            over_zero = np.sum(weights[targets_flag])
+            less_zero = np.sum(weights[~targets_flag])
+            result.append(over_zero / np.sum(weights))
+            result.append(less_zero / np.sum(weights))
+            return result
         elif self.type_of_task == 'regression':
             return np.mean(targets)
 
@@ -150,7 +151,7 @@ class DT:
     def __build_tree(self, inputs, targets, node, depth, entropy_disp, weights):
         N = len(targets)
         if depth >= self.max_depth or N <= self.min_elem:
-            node.terminal_node = self.__create_term_arr(targets)
+            node.terminal_node = self.__create_term_arr(targets, weights)
         else:
             ax_max, tay_max, ind_left_max, ind_right_max, disp_left_max, disp_right_max, left_weights, right_weights = \
                 self.__build_splitting_node(inputs, targets, entropy_disp, N, weights)
