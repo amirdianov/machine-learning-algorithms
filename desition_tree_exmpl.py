@@ -1,6 +1,7 @@
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 
 
 class Node:
@@ -14,15 +15,15 @@ class Node:
 
 class DT:
 
-    def __init__(self, type_of_task, max_depth=10, min_entropy=0, min_elem=0):
+    def __init__(self, type_of_task, max_depth=1, min_entropy=0, min_elem=0):
         self.max_depth = max_depth
         self.min_entropy = min_entropy
         self.min_elem = min_elem
         self.root = Node()
         self.type_of_task = type_of_task
 
-    def train(self, inputs, targets, random_mode: Optional[tuple] = None):
-        value = self.__shannon_entropy(targets, len(targets)) if self.type_of_task == 'classification' \
+    def train(self, inputs, targets, weights, random_mode: Optional[tuple] = None):
+        value = self.__shannon_entropy(targets, len(targets), weights) if self.type_of_task == 'classification' \
             else self.__disp(targets)
         self.__nb_dim = inputs.shape[1]
         self.__all_dim = np.arange(self.__nb_dim)
@@ -82,7 +83,7 @@ class DT:
         return np.std(targets) ** 2
 
     @staticmethod
-    def __shannon_entropy(targets, N):
+    def __shannon_entropy(targets, N, weights):
         """
                 :param targets: классы элементов обучающей выборки, дошедшие до узла
                 :param N: количество элементов обучающей выборки, дошедшие до узла
@@ -91,11 +92,14 @@ class DT:
                 np.std(arr)
         """
         entropy = 0
-        unique, counts = np.unique(targets, return_counts=True)
-        result = np.column_stack((unique, counts))
-        for element in result:
-            variable = element[1] / N
-            entropy += variable * np.log2(variable)
+        targets_flag = targets == 1
+        over_zero = np.sum(weights[targets_flag])
+        less_zero = np.sum(weights[~targets_flag])
+        result = np.column_stack((targets, weights))
+        df = pd.DataFrame(data=result, columns=["targets", "weights"])
+        df_new = df.groupby("targets")["weights"].apply(np.sum)
+        entropy += over_zero / np.sum(weights)
+        entropy += less_zero / np.sum(weights)
         return -entropy
 
     def __inf_gain(self, targets_left, targets_right, node_ent_disp, N):

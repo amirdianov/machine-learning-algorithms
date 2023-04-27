@@ -29,6 +29,7 @@ class Adaboost():
         self.weights = self.__init_weights(vectors.shape[0])
         for m in range(self.M):
             des_tr = DT(SetTypeOfTask.classification.name)
+            des_tr.train(vectors, target, self.weights)
 
     def get_prediction(self, vectors):
         """ adaboost get prediction """
