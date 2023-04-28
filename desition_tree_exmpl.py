@@ -95,8 +95,8 @@ class DT:
         targets_flag = targets == 1
         over_zero = np.sum(weights[targets_flag])
         less_zero = np.sum(weights[~targets_flag])
-        entropy += over_zero / np.sum(weights)
-        entropy += less_zero / np.sum(weights)
+        entropy += over_zero / np.sum(weights) * np.log2(over_zero / np.sum(weights))
+        entropy += less_zero / np.sum(weights) * np.log2(less_zero / np.sum(weights))
         return -entropy
 
     def __inf_gain(self, targets_left, targets_right, node_ent_disp, N, left_weights, right_weights):

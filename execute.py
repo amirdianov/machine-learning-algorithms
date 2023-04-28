@@ -2,7 +2,7 @@ from adaboost_students import Adaboost
 from dataset_titanik import Titanic
 from utils.metrics import conf_matrix, count_section_metrics
 
-N = 30
+N = 20
 model = Adaboost(N)
 train_test_data = Titanic('titanik_train_data.csv', 'titanik_test_data.csv')()
 model.train(train_test_data['train_target'], train_test_data['train_input'])
