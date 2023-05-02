@@ -44,6 +44,8 @@ class Adaboost():
             self.update_weights(target, predictions, self.weights, alpha)
             self.alpha.append(alpha)
             self.weak_classifiers.append(des_tr)
+            if round(float(error), 2) <= 0.52:
+                break
 
     def get_prediction(self, vectors):
         """ adaboost get prediction """
