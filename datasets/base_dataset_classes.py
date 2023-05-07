@@ -28,7 +28,7 @@ class BaseDataset(ABC):
         #  self.inputs_test, self.targets_test; you can use your code from previous homework
 
         df = pd.DataFrame(
-            np.concatenate((self.inputs, self.targets.reshape(-1, 1)), axis=1)
+            np.concatenate((self.inputs, self.targets), axis=1)
         )
         df_shuffled = df.sample(frac=1)
         inputs_shuffled = df_shuffled.iloc[:, :-1]
@@ -42,12 +42,12 @@ class BaseDataset(ABC):
             test_size=round(self.valid_set_percent * 100 / (1 - self.train_set_percent)) / 100,
         )
         self.inputs_train = np.array(self.inputs_train)
-        self.targets_train = np.array(self.targets_train)
+        self.targets_train = np.array(self.targets_train).flatten()
         # self.targets_train = (np.array(self.targets_train)).reshape(self.targets_train.shape[0],)
         self.inputs_valid = np.array(self.inputs_valid)
-        self.targets_valid = np.array(self.targets_valid)
+        self.targets_valid = np.array(self.targets_valid).flatten()
         # self.targets_valid = (np.array(self.targets_valid)).reshape(self.targets_valid.shape[0],)
         self.inputs_test = np.array(self.inputs_test)
-        self.targets_test = np.array(self.targets_test)
+        self.targets_test = np.array(self.targets_test).flatten()
         # self.targets_test = (np.array(self.targets_test)).reshape(self.targets_test.shape[0],)
 

@@ -22,7 +22,6 @@ class Adaboost():
         weights = weights * np.exp(weight_weak_classifiers * bools)
         self.weights = weights / np.sum(weights)
 
-
     def claculate_error(self, gt, predict, weights):
         """ weak classifier error calculation DO NOT use loops"""
         bool_var = gt != predict

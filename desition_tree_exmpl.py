@@ -21,7 +21,7 @@ class DT:
         self.root = Node()
         self.type_of_task = type_of_task
 
-    def train(self, inputs, targets, weights, random_mode: Optional[tuple] = None):
+    def train(self, inputs, targets, weights=None, random_mode: Optional[tuple] = None):
         value = self.__shannon_entropy(targets, len(targets), weights) if self.type_of_task == 'classification' \
             else self.__disp(targets)
         self.__nb_dim = inputs.shape[1]
@@ -32,7 +32,7 @@ class DT:
             self.__get_axis, self.__get_threshold = self.__get_random_axis, self.__generate_random_threshold
         else:
             self.__get_axis, self.__get_threshold = self.__get_all_axis, self.__generate_all_threshold
-        self.__build_tree(inputs, targets, self.root, 0, value, weights)
+        self.__build_tree(inputs, targets, self.root, 0, value)
 
     def __get_random_axis(self):
         return np.random.choice(self.__all_dim, self.max_nb_dim_to_check)
@@ -40,7 +40,7 @@ class DT:
     def __get_all_axis(self):
         return self.__all_dim
 
-    def __create_term_arr(self, targets, weights):
+    def __create_term_arr(self, targets, weights=None):
         """
         :param target: классы элементов обучающей выборки, дошедшие до узла
         :return: среднее значение
@@ -99,7 +99,7 @@ class DT:
         entropy += less_zero / np.sum(weights) * np.log2(less_zero / np.sum(weights))
         return -entropy
 
-    def __inf_gain(self, targets_left, targets_right, node_ent_disp, N, left_weights, right_weights):
+    def __inf_gain(self, targets_left, targets_right, node_ent_disp, N, left_weights=None, right_weights=None):
         """
         :param targets_left: targets для элементов попавших в левый узел
         :param targets_right: targets для элементов попавших в правый узел
@@ -120,7 +120,7 @@ class DT:
             return node_ent_disp - len(targets_left) / N * disp_left - \
                    len(targets_right) / N * disp_right, disp_left, disp_right
 
-    def __build_splitting_node(self, inputs, targets, entropy, N, weights):
+    def __build_splitting_node(self, inputs, targets, entropy, N):
         df = np.hstack((inputs, targets.reshape(-1, 1)))
         values_for_return = []
         maxim_inform_gain = 0
@@ -131,34 +131,31 @@ class DT:
                 cond = elem <= thresholds[tr]
                 left_bool_target = df[cond]
                 right_bool_target = df[~cond]
-                left_bool_weights = weights[cond]
-                right_bool_weights = weights[~cond]
-                left_target, right_target, left_weights, right_weights = left_bool_target[:, -1], \
-                    right_bool_target[:, -1], left_bool_weights, right_bool_weights
+                left_target, right_target = left_bool_target[:, -1], \
+                    right_bool_target[:, -1]
                 inform_gain, left_ent_or_disp, right_ent_or_disp = \
-                    self.__inf_gain(left_target, right_target, entropy, N, left_weights, right_weights)
+                    self.__inf_gain(left_target, right_target, entropy, N)
                 if inform_gain >= maxim_inform_gain:
                     maxim_inform_gain = inform_gain
                     values_for_return = [d, thresholds[tr], np.where(elem <= thresholds[tr]),
                                          np.where(elem > thresholds[tr]), left_ent_or_disp,
-                                         right_ent_or_disp, left_weights, right_weights]
+                                         right_ent_or_disp]
         return values_for_return
 
-    def __build_tree(self, inputs, targets, node, depth, entropy_disp, weights):
+    def __build_tree(self, inputs, targets, node, depth, entropy_disp, weights=None):
         N = len(targets)
         if depth >= self.max_depth or N <= self.min_elem:
-            node.terminal_node = self.__create_term_arr(targets, weights)
+            node.terminal_node = self.__create_term_arr(targets)
         else:
-            ax_max, tay_max, ind_left_max, ind_right_max, disp_left_max, disp_right_max, left_weights, right_weights = \
-                self.__build_splitting_node(inputs, targets, entropy_disp, N, weights)
+            ax_max, tay_max, ind_left_max, ind_right_max, disp_left_max, disp_right_max = \
+                self.__build_splitting_node(inputs, targets, entropy_disp, N)
             node.split_ind = ax_max
             node.split_val = tay_max
             node.left_child = Node()
             node.right_child = Node()
-            self.__build_tree(inputs[ind_left_max], targets[ind_left_max], node.left_child, depth + 1, disp_left_max,
-                              left_weights)
+            self.__build_tree(inputs[ind_left_max], targets[ind_left_max], node.left_child, depth + 1, disp_left_max)
             self.__build_tree(inputs[ind_right_max], targets[ind_right_max], node.right_child, depth + 1,
-                              disp_right_max, right_weights)
+                              disp_right_max)
 
     def get_predictions(self, inputs, prediction_vector_classif=False):
         """

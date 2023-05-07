@@ -10,9 +10,10 @@ class Wine(BaseDataset):
     def __init__(self, cfg: EasyDict):
         super(Wine, self).__init__(cfg.train_set_percent, cfg.valid_set_percent)
         df = read_dataframe_file('wine-quality-white-and-red.csv')
-
+        df.loc[df['type'] == 'white', 'type'] = 1
+        df.loc[df['type'] == 'red', 'type'] = 0
         # define properties
-        self.inputs = df.iloc[:, 1:-1].to_numpy()
+        self.inputs = df.iloc[:, :-1].to_numpy()
         self.targets = df.iloc[:, -1:].to_numpy()
 
         # divide into sets

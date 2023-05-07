@@ -1,11 +1,27 @@
-from adaboost_students import Adaboost
-from dataset_titanik import Titanic
-from utils.metrics import conf_matrix, count_section_metrics
+import random
 
-N = 40
-model = Adaboost(N)
-train_test_data = Titanic('titanik_train_data.csv', 'titanik_test_data.csv')()
-model.train(train_test_data['train_target'], train_test_data['train_input'])
-predict = model.get_prediction(train_test_data['test_input'])
-print(conf_matrix(predict, train_test_data['test_target']))
-print(count_section_metrics(train_test_data['test_target'], predict))
+from config.conf import cfg
+from datasets.wine_dataset import Wine
+from gradient_boosting import GradientBoosting
+from utils.enums import SetType
+from utils.metrics import MSE
+from utils.visualisation import Visualisation
+
+train = Wine(cfg)(SetType.train)
+valid = Wine(cfg)(SetType.valid)
+test = Wine(cfg)(SetType.test)
+models = []
+for _ in range(3):
+    M = 5
+    a = 1
+    model = GradientBoosting(M, a)
+    model.train(train['inputs'], train['targets'])
+    predictions_valid = model.get_prediction(valid['inputs'])
+    MSE_valid = MSE(predictions_valid, valid['targets'])
+    predictions_test = model.get_prediction(test['inputs'])
+    MSE_test = MSE(predictions_test, test['targets'])
+    models.append((model, MSE_valid, MSE_test, M, a))
+models = sorted(models, key=lambda x: x[1])
+models_best = models[-10::]
+print(models_best)
+
