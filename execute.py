@@ -11,9 +11,9 @@ train = Wine(cfg)(SetType.train)
 valid = Wine(cfg)(SetType.valid)
 test = Wine(cfg)(SetType.test)
 models = []
-for _ in range(3):
-    M = 5
-    a = 1
+for _ in range(30):
+    M = random.randrange(cfg.M_left, cfg.M_right, 1)
+    a = round(random.random(), 4)
     model = GradientBoosting(M, a)
     model.train(train['inputs'], train['targets'])
     predictions_valid = model.get_prediction(valid['inputs'])
@@ -24,4 +24,4 @@ for _ in range(3):
 models = sorted(models, key=lambda x: x[1])
 models_best = models[-10::]
 print(models_best)
-
+Visualisation.visualise_best_models(models_best)
