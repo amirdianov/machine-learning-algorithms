@@ -9,6 +9,8 @@ class LinearRegression:
         """we take one more weight, because we need column f0 = 1"""
         self.weights = np.random.randn(len(base_functions) + 1)
         self.base_functions = base_functions
+        self.reg_coeff = reg_coeff
+
 
     @staticmethod
     def __pseudoinverse_matrix(matrix: np.ndarray) -> np.ndarray:
@@ -33,9 +35,15 @@ class LinearRegression:
         """calculate prediction of the model (y) using formula from the lecture"""
         return np.dot(plan_matrix, self.weights.T)
 
+
     def train_model(self, inputs: np.ndarray, targets: np.ndarray) -> None:
-        """Not this homework"""
-        pass
+        # prepare data
+        plan_matrix = self.__plan_matrix(inputs)
+        pseudoinverse_plan_matrix = self.__pseudoinverse_matrix(plan_matrix)
+
+        # train process
+        self.__calculate_weights(pseudoinverse_plan_matrix, targets)
+
 
     def __call__(self, inputs: np.ndarray) -> np.ndarray:
         """return prediction of the model"""

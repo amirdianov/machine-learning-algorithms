@@ -30,3 +30,4 @@ if __name__ == "__main__":
             base_functions=[lambda x, degree=i: x**degree for i in range(1, 1 + elem)]
         )
         experiment(lin_reg_cfg, visualise_prediction=True)
+
