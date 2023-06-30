@@ -1,38 +1,69 @@
 from typing import Union
 
 import numpy as np
+import pandas as pd
 from easydict import EasyDict
+
+from utils import metrics
 
 
 class LogReg:
+    BACK_UP = {'target_value_func': [],
+               'accuracy_train': [],
+               'accuracy_valid': []}
 
     def __init__(self, cfg: EasyDict, number_classes: int, input_vector_dimension: int):
         self.k = number_classes
         self.d = input_vector_dimension
         self.cfg = cfg
+        self.valid_accuracy = [0.0]
         getattr(self, f'weights_init_{cfg.weights_init_type.name}')(**cfg.weights_init_kwargs)
+        getattr(self, f'b_init_{cfg.weights_init_type.name}')()
 
-    def weights_init_normal(self, sigma):
-        # TODO init weights with values from normal distribution
-        pass
+    def weights_init_normal(self, mu=0, sigma=1):
+        self.weights = np.random.normal(mu, sigma, size=(self.k, self.d))
 
-    def weights_init_uniform(self, epsilon):
-        # TODO init weights with values from uniform distribution BONUS TASK
-        pass
+    def b_init_normal(self, mu=0, sigma=1):
+        self.b = np.random.normal(mu, sigma, self.k)
+
+    def weights_init_uniform(self, a, b):
+        self.weights = np.random.uniform(a, b, size=(self.k, self.d))
+
+    def b_init_uniform(self, a, b):
+        self.weights = np.random.uniform(a, b, self.k)
 
     def weights_init_xavier(self, n_in, n_out):
-        # TODO Xavier weights initialisation BONUS TASK
-        pass
+        # Xavier weights initialisation BONUS TASK
+        variance = 2 / (n_in + n_out)
+        std_dev = np.sqrt(variance)
+        self.weights = np.random.normal(loc=0.0, scale=std_dev, size=(self.k, self.d))
 
-    def weights_init_he(self, n_in):
-        # TODO He weights initialisation BONUS TASK
-        pass
+    def b_init_xavier(self, n_in, n_out):
+        # Xavier weights initialisation BONUS TASK
+        variance = 2 / (n_in + n_out)
+        std_dev = np.sqrt(variance)
+        self.b = np.random.normal(loc=0.0, scale=std_dev, size=self.k)
+
+    def weights_init_he(self, n):
+        variance = 2 / n
+        std_dev = np.sqrt(variance)
+        self.weights = np.random.normal(loc=0.0, scale=std_dev, size=(self.k, self.d))
+
+    def b_init_he(self, n):
+        variance = 2 / n
+        std_dev = np.sqrt(variance)
+        self.b = np.random.normal(loc=0.0, scale=std_dev, size=self.k)
 
     def __softmax(self, model_output: np.ndarray) -> np.ndarray:
-        # TODO softmax function realisation
+        # softmax function realisation
         #  subtract max value of the model_output for numerical stability
 
-        pass
+        maxim_value = np.max(model_output)
+        model_output = model_output - maxim_value
+        model_output = np.exp(model_output)
+        summa = model_output.sum(axis=1)
+        y = model_output / summa.reshape(-1, 1)
+        return y
 
     def get_model_confidence(self, inputs: np.ndarray) -> np.ndarray:
         # calculate model confidence (y in lecture)
@@ -41,28 +72,36 @@ class LogReg:
         return y
 
     def __get_model_output(self, inputs: np.ndarray) -> np.ndarray:
-        # TODO calculate model output (z in lecture) using matrix multiplication DONT USE LOOPS
-        pass
+        # calculate model output (z in lecture) using matrix multiplication DONT USE LOOPS
+        return (self.weights @ inputs.T).T + self.b
 
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
-        # TODO calculate gradient for w
+        # calculate gradient for w
         #  slide 10 in presentation
-        pass
+        return (model_confidence - targets).T @ inputs + self.cfg.lam * self.weights
 
     def __get_gradient_b(self, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
-        # TODO calculate gradient for b
+        # calculate gradient for b
         #  slide 10 in presentation
-        pass
+        return (model_confidence - targets).T @ np.ones(targets.shape[0])
 
     def __weights_update(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray):
-        # TODO update model weights
+        # update model weights
         #  slide 8, item 2 in presentation for updating weights
-        pass
+        w_grad = self.__get_gradient_w(inputs, targets,
+                                       model_confidence)
+        b_grad = self.__get_gradient_b(targets, model_confidence)
+        self.difference_weights = self.weights - self.cfg.gamma * w_grad
+        self.weights -= self.cfg.gamma * w_grad
+        self.b -= self.cfg.gamma * b_grad
 
     def __gradient_descent_step(self, inputs_train: np.ndarray, targets_train: np.ndarray,
-                                epoch: int, inputs_valid: Union[np.ndarray, None] = None,
-                                targets_valid: Union[np.ndarray, None] = None):
-        # TODO one step in Gradient descent:
+                                onehotencoding_train: np.ndarray,
+                                inputs_valid: Union[np.ndarray, None] = None,
+                                targets_valid: Union[np.ndarray, None] = None,
+                                onehotencoding_valid: Union[np.ndarray, None] = None, epoch: int = None):
+
+        # one step in Gradient descent:
         #  calculate model confidence;
         #  target function value calculation;
         #
@@ -72,16 +111,49 @@ class LogReg:
         :param targets_train: onehot-encoding
         :param epoch: number of loop iteration
         """
-        pass
+
+        Y_train = self.get_model_confidence(inputs_train)
+        Y_valid = self.get_model_confidence(inputs_valid)
+
+        self.__weights_update(inputs_train, onehotencoding_train, Y_train)
+        target_value_result = self.__target_function_value(inputs_train, onehotencoding_train, Y_train)
+        train_matrix, train_accuracy = self.__validate(inputs_train, targets_train, Y_train)
+        valid_matrix, valid_accuracy = self.__validate(inputs_valid, targets_valid, Y_valid)
+        self.BACK_UP['target_value_func'].append([epoch, target_value_result])
+        self.BACK_UP['accuracy_train'].append([epoch, train_accuracy])
+        self.BACK_UP['accuracy_valid'].append([epoch, valid_accuracy])
+        self.valid_accuracy.append(valid_accuracy)
+        if epoch % 10 == 0:
+            print(f'Target func value: {target_value_result}')
+            print(f'Epoch:{epoch}. Для train, train_matrix: {train_matrix}, train_accuracy: {train_accuracy}')
+            print(f'Epoch:{epoch}. Для valid, valid_matrix: {valid_matrix}, valid_accuracy: {valid_accuracy}')
 
     def gradient_descent_epoch(self, inputs_train: np.ndarray, targets_train: np.ndarray,
+                               onehotencoding_train: np.ndarray,
                                inputs_valid: Union[np.ndarray, None] = None,
-                               targets_valid: Union[np.ndarray, None] = None):
-        # TODO loop stopping criteria - number of iterations of gradient_descent
+                               targets_valid: Union[np.ndarray, None] = None,
+                               onehotencoding_valid: Union[np.ndarray, None] = None, batching=False):
+        # loop stopping criteria - number of iterations of gradient_descent
         # while not stopping criteria
         #   self.__gradient_descent_step(inputs, targets)
-        for epoch in range(self.cfg.nb_epoch):
-            self.__gradient_descent_step(inputs_train, targets_train, epoch, inputs_valid, targets_valid)
+        if not batching:
+            for epoch in range(self.cfg.nb_epoch):
+                self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, inputs_valid,
+                                             targets_valid, onehotencoding_valid, epoch=epoch)
+        else:
+            for epoch in range(self.cfg.nb_epoch):
+                train_df = pd.DataFrame(zip(inputs_train, targets_train, onehotencoding_train),
+                                        columns=['input', 'target', 'onehot'])
+                train_df_shuffled = train_df.sample(frac=1)
+                all_batches = np.array_split(train_df_shuffled, 10)
+                for batch in all_batches:
+                    inputs_train_new = np.array(
+                        [list(mas) for mas in batch['input']])
+                    targets_train_new = np.array([mas for mas in batch['target']])
+                    onehotencoding_train_new = np.array([list(mas) for mas in batch['onehot']])
+                    self.__gradient_descent_step(inputs_train_new, targets_train_new, onehotencoding_train_new,
+                                                 inputs_valid,
+                                                 targets_valid, onehotencoding_valid, epoch=epoch)
 
     def gradient_descent_gradient_norm(self, inputs_train: np.ndarray, targets_train: np.ndarray,
                                        inputs_valid: Union[np.ndarray, None] = None,
@@ -92,39 +164,50 @@ class LogReg:
         pass
 
     def gradient_descent_difference_norm(self, inputs_train: np.ndarray, targets_train: np.ndarray,
+                                         onehotencoding_train: np.ndarray,
                                          inputs_valid: Union[np.ndarray, None] = None,
-                                         targets_valid: Union[np.ndarray, None] = None):
-        # TODO gradient_descent with stopping criteria - norm of difference between ￼w_k-1 and w_k;￼BONUS TASK
-        # while not stopping criteria
-        #   self.__gradient_descent_step(inputs, targets)
-        pass
+                                         targets_valid: Union[np.ndarray, None] = None,
+                                         onehotencoding_valid: Union[np.ndarray, None] = None):
+        # gradient_descent with stopping criteria - norm of difference between ￼w_k-1 and w_k;￼BONUS TASK
+        while np.linalg.norm(self.difference_weights) < self.cfg.treshhold:
+            self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, inputs_valid,
+                                         targets_valid, onehotencoding_valid)
 
     def gradient_descent_metric_value(self, inputs_train: np.ndarray, targets_train: np.ndarray,
+                                      onehotencoding_train: np.ndarray,
                                       inputs_valid: Union[np.ndarray, None] = None,
-                                      targets_valid: Union[np.ndarray, None] = None):
-        # TODO gradient_descent with stopping criteria - metric (accuracy, f1 score or other) value on validation set is not growing;￼
+                                      targets_valid: Union[np.ndarray, None] = None,
+                                      onehotencoding_valid: Union[np.ndarray, None] = None):
+        # gradient_descent with stopping criteria - metric (accuracy, f1 score or other) value on validation set is not growing;￼
         #  BONUS TASK
-        # while not stopping criteria
-        #   self.__gradient_descent_step(inputs, targets)
-        pass
+        while self.valid_accuracy[-1] - self.valid_accuracy[-2] > 0:
+            self.__gradient_descent_step(inputs_train, targets_train, onehotencoding_train, inputs_valid,
+                                         targets_valid, onehotencoding_valid)
 
-    def train(self, inputs_train: np.ndarray, targets_train: np.ndarray,
-              inputs_valid: Union[np.ndarray, None] = None, targets_valid: Union[np.ndarray, None] = None):
+    def train(self, inputs_train: np.ndarray, targets_train: np.ndarray, onehotencoding_train: np.ndarray,
+              inputs_valid: Union[np.ndarray, None] = None,
+              targets_valid: Union[np.ndarray, None] = None,
+              onehotencoding_valid: Union[np.ndarray, None] = None):
         getattr(self, f'gradient_descent_{self.cfg.gd_stopping_criteria.name}')(inputs_train, targets_train,
+                                                                                onehotencoding_train,
                                                                                 inputs_valid,
-                                                                                targets_valid)
+                                                                                targets_valid,
+                                                                                onehotencoding_valid, False)
 
     def __target_function_value(self, inputs: np.ndarray, targets: np.ndarray,
                                 model_confidence: Union[np.ndarray, None] = None) -> float:
-        # TODO target function value calculation
-        #  use formula from slide 6 for computational stability
-        pass
+        summa = 0
+        for i in range(len(inputs)):
+            summa += targets[i] @ np.log(1 / model_confidence[i].T)
+        return summa
 
     def __validate(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: Union[np.ndarray, None] = None):
-        # TODO metrics calculation: accuracy, confusion matrix
-        pass
+        # metrics calculation: accuracy, confusion matrix
+        matrix = metrics.conf_matrix(targets, np.argmax(model_confidence, axis=1))
+        accuracy = metrics.accuracy(targets, np.argmax(model_confidence, axis=1))
+        return matrix, accuracy
 
     def __call__(self, inputs: np.ndarray):
-        model_confidence = self.get_model_confidence(inputs)
-        predictions = np.argmax(model_confidence, axis=0)
+        Y = self.get_model_confidence(inputs)
+        predictions = np.argmax(Y, axis=1)
         return predictions
